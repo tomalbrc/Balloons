@@ -1,31 +1,46 @@
 plugins {
     id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'com.gradleup.shadow' version '8.3.6'
     id 'maven-publish'
 }
 
-version = project.mod_version
+version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
 base {
     archivesName = project.archives_base_name
 }
 
-
 repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
+    maven { url 'https://maven.tomalbrc.de' }
+    maven { url 'https://maven.nucleoid.xyz' }
+    maven { url 'https://maven.parchmentmc.org' }
 }
 
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
+    mappings(loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.parchment_version}")
+    })
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Polymer
+    modImplementation ("eu.pb4:polymer-core:${project.polymer_version}")
+    modImplementation ("eu.pb4:polymer-blocks:${project.polymer_version}")
+    modImplementation ("eu.pb4:polymer-resource-pack:${project.polymer_version}")
+    modImplementation ("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
+    modImplementation ("eu.pb4:polymer-virtual-entity:${project.polymer_version}")
+    modImplementation ("eu.pb4:polymer-networking:${project.polymer_version}")
+    modImplementation ("eu.pb4:polymer-autohost:${project.polymer_version}")
+
+    modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
+    modImplementation include("de.tomalbrc:filament:${project.filament_version}")
+
+    implementation 'org.mongodb:mongodb-driver-sync:4.11.0'
+    shadow 'org.mongodb:mongodb-driver-sync:4.11.0'
 }
 
 processResources {
@@ -39,6 +54,16 @@ processResources {
                 "minecraft_version": project.minecraft_version,
                 "loader_version": project.loader_version
     }
+}
+
+configurations {
+    shadow
+    implementation.extendsFrom(shadow)
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    relocate 'com.mongodb', 'de.tomalbrc.balloons.shadow.mongodb'
 }
 
 def targetJavaVersion = 21
