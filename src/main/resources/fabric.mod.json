@@ -7,7 +7,7 @@
   "authors": [],
   "contact": {},
   "license": "AGPL-3.0",
-  "icon": "assets/balloons/icon.png",
+  "icon": "balloons@512.png",
   "environment": "server",
   "entrypoints": {
     "main": [
