@@ -11,6 +11,11 @@ base {
     archivesName = project.archives_base_name
 }
 
+configurations {
+    shade
+    implementation.extendsFrom(shadow)
+}
+
 repositories {
     maven { url 'https://maven.tomalbrc.de' }
     maven { url 'https://maven.nucleoid.xyz' }
@@ -39,8 +44,7 @@ dependencies {
     modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
     modCompileOnly("de.tomalbrc:filament:${project.filament_version}")
 
-    implementation 'org.mongodb:mongodb-driver-sync:4.11.0'
-    shadow 'org.mongodb:mongodb-driver-sync:4.11.0'
+    implementation shade('org.mongodb:mongodb-driver-sync:4.11.0')
 }
 
 processResources {
@@ -56,14 +60,15 @@ processResources {
     }
 }
 
-configurations {
-    shadow
-    implementation.extendsFrom(shadow)
+shadowJar {
+    configurations = [project.configurations.shade]
+    relocate 'com.mongodb', 'de.tomalbrc.balloons.shadow.mongo'
+    archiveClassifier.set("shadow")
 }
 
-shadowJar {
-    configurations = [project.configurations.shadow]
-    relocate 'com.mongodb', 'de.tomalbrc.balloons.shadow.mongodb'
+remapJar {
+    dependsOn(shadowJar)
+    input.set(shadowJar.archivePath)
 }
 
 def targetJavaVersion = 21
@@ -98,17 +103,17 @@ jar {
 // configure the maven publication
 publishing {
     publications {
-        create("mavenJava", MavenPublication) {
-            artifactId = project.archives_base_name
-            from components.java
+        mavenJava(MavenPublication) {
+            artifact(remapJar) {
+                builtBy remapJar
+            }
+            artifact(sourcesJar) {
+                classifier "sources"
+                builtBy remapSourcesJar
+            }
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
     }
 }
