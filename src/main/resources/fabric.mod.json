@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "balloons",
+  "version": "${version}",
+  "name": "Balloons",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "AGPL-3.0",
+  "icon": "assets/balloons/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "de.tomalbrc.balloons.Balloons"
+    ]
+  },
+  "mixins": [
+    "balloons.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
