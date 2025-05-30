@@ -37,7 +37,7 @@ dependencies {
     modImplementation ("eu.pb4:polymer-autohost:${project.polymer_version}")
 
     modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
-    modImplementation include("de.tomalbrc:filament:${project.filament_version}")
+    modCompileOnly("de.tomalbrc:filament:${project.filament_version}")
 
     implementation 'org.mongodb:mongodb-driver-sync:4.11.0'
     shadow 'org.mongodb:mongodb-driver-sync:4.11.0'
