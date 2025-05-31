@@ -63,6 +63,7 @@ processResources {
 shadowJar {
     configurations = [project.configurations.shade]
     relocate 'com.mongodb', 'de.tomalbrc.balloons.shadow.mongo'
+    relocate 'org.bson', 'de.tomalbrc.balloons.shadow.bson'
     archiveClassifier.set("shadow")
 }
 
