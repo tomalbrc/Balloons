@@ -1,6 +1,5 @@
 package de.tomalbrc.balloons.impl;
 
-import com.google.common.collect.ImmutableList;
 import de.tomalbrc.bil.core.element.CollisionElement;
 import de.tomalbrc.bil.core.holder.base.SimpleAnimatedHolder;
 import de.tomalbrc.bil.core.holder.wrapper.Bone;
@@ -11,6 +10,9 @@ import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
 import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
@@ -26,9 +28,11 @@ import java.util.List;
 public class AnimatedBalloonHolder extends SimpleAnimatedHolder {
     private final GenericEntityElement leashElement;
     private float yaw, pitch;
+    private final boolean leash;
 
-    protected AnimatedBalloonHolder(Model model) {
+    protected AnimatedBalloonHolder(Model model, boolean leash) {
         super(model);
+        this.leash = leash;
         var slime =  new CollisionElement(VirtualElement.InteractionHandler.EMPTY);
         slime.setSize(1);
         this.leashElement = slime;
@@ -44,14 +48,19 @@ public class AnimatedBalloonHolder extends SimpleAnimatedHolder {
                 ids.add(bone.element().getEntityId());
             }
 
+
             var ridePacket = VirtualEntityUtils.createRidePacket(this.leashElement.getEntityId(), ids);
-            var linkPacket = new ClientboundSetEntityLinkPacket(player.player, player.player);
+            var list = ObjectArrayList.<Packet<? super ClientGamePacketListener>>of(ridePacket);
+
+            if (this.leash)
+                list.add(new ClientboundSetEntityLinkPacket(player.player, player.player));
 
             var attributeInstance = new AttributeInstance(Attributes.SCALE, (instance) -> {});
             attributeInstance.setBaseValue(0.01);
             var attributesPacket = new ClientboundUpdateAttributesPacket(this.leashElement.getEntityId(), List.of(attributeInstance));
+            list.add(attributesPacket);
 
-            player.send(new ClientboundBundlePacket(ImmutableList.of(ridePacket, linkPacket, attributesPacket)));
+            player.send(new ClientboundBundlePacket(list));
         }
 
         return value;

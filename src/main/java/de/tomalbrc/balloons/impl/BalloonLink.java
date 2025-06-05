@@ -15,12 +15,17 @@ public class BalloonLink {
     private final float bobFrequency;   // How fast it bobs up and down
     private final float bobAmplitude;   // How high it bobs
 
-    public BalloonLink(Vec3 initialPos, double followSpeed, double drag, float bobFrequency, float bobAmplitude) {
+    private final boolean rotate;
+    private final boolean tilt;
+
+    public BalloonLink(Vec3 initialPos, double followSpeed, double drag, float bobFrequency, float bobAmplitude, boolean rotate, boolean tilt) {
         this.position = initialPos;
         this.followSpeed = followSpeed;
         this.drag = drag;
         this.bobFrequency = bobFrequency;
         this.bobAmplitude = bobAmplitude;
+        this.rotate = rotate;
+        this.tilt = tilt;
     }
 
     public Vec3 update(Vec3 playerPos, long tick) {
@@ -56,8 +61,8 @@ public class BalloonLink {
         double vx = velocity.x();
         double vz = velocity.z();
 
-        this.yaw = (float) Math.toDegrees(Math.atan2(-vx, vz));
-        this.pitch = (float) (Mth.RAD_TO_DEG * velocity.horizontalDistance()*1.5f);
+        if (this.rotate) this.yaw = (float) Math.toDegrees(Math.atan2(-vx, vz));
+        if (this.tilt) this.pitch = (float) (Mth.RAD_TO_DEG * velocity.horizontalDistance()*1.5f);
 
         double timeSeconds = tick / 20.0;
         double bobOffset = bobAmplitude * Math.sin(timeSeconds * bobFrequency * 2 * Math.PI);

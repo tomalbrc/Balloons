@@ -120,10 +120,10 @@ public class Balloons implements ModInitializer {
         var balloon = Balloons.REGISTERED_BALLOONS.get(balloonId);
         Model model = Models.getModel(balloon.data().model);
         var virtualBalloon = new VirtualBalloon(serverPlayer);
-        virtualBalloon.setModel(model);
+        virtualBalloon.setModel(model, balloon.data().showLeash);
         ACTIVE_BALLOONS.put(serverPlayer, virtualBalloon);
         virtualBalloon.play(balloon.data().animation);
-        virtualBalloon.attach();
+        virtualBalloon.attach(balloon.data());
     }
 
     public static void removeBalloonIfActive(ServerPlayer serverPlayer) {
