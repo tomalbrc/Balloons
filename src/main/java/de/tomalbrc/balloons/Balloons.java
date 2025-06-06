@@ -12,6 +12,7 @@ import de.tomalbrc.balloons.util.BalloonDatabaseStorage;
 import de.tomalbrc.balloons.util.PlayerBalloonDataStorage;
 import de.tomalbrc.balloons.util.StorageUtil;
 import de.tomalbrc.bil.core.model.Model;
+import eu.pb4.polymer.core.api.other.PolymerComponent;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -49,7 +50,9 @@ public class Balloons implements ModInitializer {
     @Override
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> BalloonCommand.register(dispatcher));
+
         Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath("balloons", "balloon"), COMPONENT);
+        PolymerComponent.registerDataComponent(COMPONENT);
 
         Models.load();
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((minecraftServer, closeableResourceManager) -> Models.load());
