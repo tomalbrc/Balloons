@@ -1,6 +1,7 @@
 package de.tomalbrc.balloons.util;
 
 import de.tomalbrc.balloons.Balloons;
+import de.tomalbrc.balloons.config.ModConfig;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;

@@ -11,21 +11,21 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import java.util.Map;
 import java.util.UUID;
 
-public class PlayerBalloonData extends SavedData implements StorageUtil.Provider {
+public class PlayerBalloonDataStorage extends SavedData implements StorageUtil.Provider {
     public static final Codec<Map<UUID, ResourceLocation>> ACTIVE_DATA_CODEC = Codec.unboundedMap(UUIDUtil.STRING_CODEC, ResourceLocation.CODEC);
-    public static final Codec<PlayerBalloonData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final Codec<PlayerBalloonDataStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ACTIVE_DATA_CODEC.fieldOf("active").forGetter(data -> data.activeData)
-    ).apply(instance, PlayerBalloonData::new));
+    ).apply(instance, PlayerBalloonDataStorage::new));
 
-    public static SavedDataType<PlayerBalloonData> TYPE = new SavedDataType<>("balloons", (context) -> new PlayerBalloonData(), ctx -> CODEC, null);
+    public static SavedDataType<PlayerBalloonDataStorage> TYPE = new SavedDataType<>("balloons", (context) -> new PlayerBalloonDataStorage(), ctx -> CODEC, null);
 
     private final Map<UUID, ResourceLocation> activeData = new Object2ObjectArrayMap<>();
 
-    public PlayerBalloonData() {
+    public PlayerBalloonDataStorage() {
         StorageUtil.addProvider(this);
     }
 
-    public PlayerBalloonData(Map<UUID, ResourceLocation> activeData) {
+    public PlayerBalloonDataStorage(Map<UUID, ResourceLocation> activeData) {
         this();
         this.activeData.putAll(activeData);
     }

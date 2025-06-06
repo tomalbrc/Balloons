@@ -2,12 +2,14 @@ package de.tomalbrc.balloons;
 
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.balloons.command.BalloonCommand;
-import de.tomalbrc.balloons.filament.TrinketCompat;
-import de.tomalbrc.balloons.impl.VirtualBalloon;
+import de.tomalbrc.balloons.config.ModConfig;
+import de.tomalbrc.balloons.config.ModConfigBalloon;
 import de.tomalbrc.balloons.filament.FilamentCompat;
-import de.tomalbrc.balloons.util.BalloonDatabase;
-import de.tomalbrc.balloons.util.ModConfig;
-import de.tomalbrc.balloons.util.PlayerBalloonData;
+import de.tomalbrc.balloons.filament.TrinketCompat;
+import de.tomalbrc.balloons.filament.VanillaCompat;
+import de.tomalbrc.balloons.impl.VirtualBalloon;
+import de.tomalbrc.balloons.util.BalloonDatabaseStorage;
+import de.tomalbrc.balloons.util.PlayerBalloonDataStorage;
 import de.tomalbrc.balloons.util.StorageUtil;
 import de.tomalbrc.bil.core.model.Model;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
@@ -20,6 +22,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,86 +36,82 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Balloons implements ModInitializer {
-    public static Map<ResourceLocation, ModConfig.ConfigBalloon> REGISTERED_BALLOONS = new Object2ObjectArrayMap<>();
+    public static Map<ResourceLocation, ModConfigBalloon> REGISTERED_BALLOONS = new Object2ObjectArrayMap<>();
     public static Map<ServerPlayer, VirtualBalloon> ACTIVE_BALLOONS = new ConcurrentHashMap<>();
 
-    public static BalloonDatabase DATABASE = null;
-    public static PlayerBalloonData PERSISTENT_DATA = null;
+    public static BalloonDatabaseStorage DATABASE = null;
+    public static PlayerBalloonDataStorage PERSISTENT_DATA = null;
 
     public static final Logger LOGGER = LogUtils.getLogger();
+
+    public static DataComponentType<BalloonComponent> COMPONENT = DataComponentType.<BalloonComponent>builder().persistent(BalloonComponent.CODEC).build();
 
     @Override
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> BalloonCommand.register(dispatcher));
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath("balloons", "balloon"), COMPONENT);
 
         Models.load();
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((minecraftServer, closeableResourceManager) -> Models.load());
 
+        VanillaCompat.init();
+
         if (FilamentCompat.isLoaded()) {
             FilamentCompat.init();
+        }
 
-            if (TrinketCompat.isLoaded()) {
-                TrinketCompat.init();
-            }
+        if (TrinketCompat.isLoaded()) {
+            TrinketCompat.init();
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
             // load configs
             ModConfig.load();
-            for (ModConfig.ConfigBalloon configBalloon : ModConfig.getInstance().balloons) {
+            for (ModConfigBalloon configBalloon : ModConfig.getInstance().balloons) {
                 REGISTERED_BALLOONS.put(configBalloon.id(), configBalloon);
             }
 
-            PERSISTENT_DATA = minecraftServer.overworld().getDataStorage().computeIfAbsent(PlayerBalloonData.TYPE);
-
             if (ModConfig.getInstance().mongoDb != null && ModConfig.getInstance().mongoDb.enabled)
-                DATABASE = new BalloonDatabase(ModConfig.getInstance().mongoDb);
+                DATABASE = new BalloonDatabaseStorage(ModConfig.getInstance().mongoDb);
+            else
+                PERSISTENT_DATA = minecraftServer.overworld().getDataStorage().computeIfAbsent(PlayerBalloonDataStorage.TYPE);
         });
 
         ServerTickEvents.END_SERVER_TICK.register(Balloons::onTick);
+
         ServerPlayConnectionEvents.JOIN.register(Balloons::onJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(Balloons::onDisconnect);
+
         ServerLivingEntityEvents.AFTER_DEATH.register((livingEntity, damageSource) -> {
             if (livingEntity instanceof ServerPlayer serverPlayer) {
-                LOGGER.info("remove after death");
                 removeBalloonIfActive(serverPlayer);
             }
         });
         ServerPlayerEvents.AFTER_RESPAWN.register(((oldPlayer, newPlayer, b) -> {
-            LOGGER.info("after respawn");
             removeBalloonIfActive(oldPlayer);
             addBalloonIfActive(newPlayer);
         }));
         ServerPlayerEvents.COPY_FROM.register((serverPlayer, serverPlayer1, b) -> {
-            LOGGER.info("copy from");
-
             removeBalloonIfActive(serverPlayer);
             addBalloonIfActive(serverPlayer1);
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, serverLevel) -> {
             if (entity instanceof ServerPlayer serverPlayer) {
-                LOGGER.info("unload");
-
                 removeBalloonIfActive(serverPlayer);
             }
         });
         ServerEntityEvents.ENTITY_LOAD.register((entity, serverLevel) -> {
             if (entity instanceof ServerPlayer serverPlayer) {
-                LOGGER.info("entity load");
-
                 addBalloonIfActive(serverPlayer);
             }
         });
     }
 
     private static void onJoin(ServerGamePacketListenerImpl serverGamePacketListener, PacketSender packetSender, MinecraftServer server) {
-        LOGGER.info("onJoin");
-
         addBalloonIfActive(serverGamePacketListener.player);
     }
 
     private static void onDisconnect(ServerGamePacketListenerImpl serverGamePacketListener, MinecraftServer server) {
-        LOGGER.info("onDisconnect");
         removeBalloonIfActive(serverGamePacketListener.player);
     }
 
@@ -124,11 +125,12 @@ public class Balloons implements ModInitializer {
 
     private static void setBalloon(ServerPlayer serverPlayer, ResourceLocation balloonId) {
         var balloon = Balloons.REGISTERED_BALLOONS.get(balloonId);
-        Model model = Models.getModel(balloon.data().model);
+        Model model = Models.getModel(balloon.data().model());
         var virtualBalloon = new VirtualBalloon(serverPlayer);
-        virtualBalloon.setModel(model, balloon.data().showLeash);
+        virtualBalloon.setModel(model, balloon.data().showLeash());
         ACTIVE_BALLOONS.put(serverPlayer, virtualBalloon);
-        virtualBalloon.play(balloon.data().animation);
+        if (balloon.data().animation() != null)
+            virtualBalloon.play(balloon.data().animation());
         virtualBalloon.attach(balloon.data());
     }
 

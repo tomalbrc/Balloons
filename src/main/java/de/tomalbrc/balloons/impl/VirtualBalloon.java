@@ -1,6 +1,6 @@
 package de.tomalbrc.balloons.impl;
 
-import de.tomalbrc.balloons.filament.BalloonBehaviour;
+import de.tomalbrc.balloons.BalloonComponent;
 import de.tomalbrc.bil.core.model.Model;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
@@ -35,17 +35,17 @@ public class VirtualBalloon {
             this.animatedHolder.getAnimator().playAnimation(animation);
     }
 
-    public void attach(BalloonBehaviour.Config config) {
+    public void attach(BalloonComponent config) {
         if (getHolder().getAttachment() == null) {
             EntityAttachment.ofTicking(this.getHolder(), this.owner);
             this.follower = new BalloonLink(
-                    this.owner.position().add(config.offset),
-                    config.followSpeed,
-                    config.drag,
-                    config.bobFrequency,
-                    config.bobAmplitude,
-                    config.rotate,
-                    config.tilt
+                    this.owner.position().add(config.offset()),
+                    config.followSpeed(),
+                    config.drag(),
+                    config.bobFrequency(),
+                    config.bobAmplitude(),
+                    config.rotate(),
+                    config.tilt()
             );
             this.getHolder().startWatching(this.owner);
         }

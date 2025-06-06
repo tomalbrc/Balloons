@@ -8,6 +8,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
+import de.tomalbrc.balloons.config.MongoConfig;
 import net.minecraft.resources.ResourceLocation;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
@@ -18,12 +19,12 @@ import java.util.concurrent.TimeUnit;
 
 import static com.mongodb.client.model.Filters.eq;
 
-public class BalloonDatabase implements StorageUtil.Provider {
+public class BalloonDatabaseStorage implements StorageUtil.Provider {
     private final MongoClient client;
     private final MongoCollection<Document> collection;
 
-    public BalloonDatabase(MongoConfig mongoConfig) {
-        this.client = BalloonDatabase.createClient(mongoConfig);
+    public BalloonDatabaseStorage(MongoConfig mongoConfig) {
+        this.client = BalloonDatabaseStorage.createClient(mongoConfig);
         MongoDatabase database = this.client.getDatabase(mongoConfig.database);
         this.collection = database.getCollection(mongoConfig.collection);
 

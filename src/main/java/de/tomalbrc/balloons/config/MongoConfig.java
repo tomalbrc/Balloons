@@ -1,4 +1,4 @@
-package de.tomalbrc.balloons.util;
+package de.tomalbrc.balloons.config;
 
 public class MongoConfig {
     public boolean enabled = false;
