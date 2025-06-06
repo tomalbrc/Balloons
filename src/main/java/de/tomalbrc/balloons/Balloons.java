@@ -147,8 +147,6 @@ public class Balloons implements ModInitializer {
             }
             SPAWNED_BALLOONS.remove(livingEntity.getUUID());
         }
-
-        VanillaCompat.TEMP_PROVIDER.removeActive(livingEntity.getUUID());
     }
 
     public static void removeBalloon(LivingEntity livingEntity, ResourceLocation id) {
