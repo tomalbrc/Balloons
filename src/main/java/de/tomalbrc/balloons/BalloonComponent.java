@@ -20,7 +20,7 @@ public record BalloonComponent(
 ) implements PolymerComponent {
     public static final Codec<BalloonComponent> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("model").forGetter(BalloonComponent::model),
-            Codec.STRING.fieldOf("animation").forGetter(BalloonComponent::animation),
+            Codec.STRING.optionalFieldOf("animation", "idle").forGetter(BalloonComponent::animation),
             Codec.BOOL.optionalFieldOf("show_leash", true).forGetter(BalloonComponent::showLeash),
             Codec.BOOL.optionalFieldOf("tilt", true).forGetter(BalloonComponent::tilt),
             Codec.BOOL.optionalFieldOf("rotate", true).forGetter(BalloonComponent::rotate),

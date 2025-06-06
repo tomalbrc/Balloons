@@ -30,15 +30,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.LivingEntity;
 import org.slf4j.Logger;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Balloons implements ModInitializer {
     public static Map<ResourceLocation, ModConfigBalloon> REGISTERED_BALLOONS = new Object2ObjectArrayMap<>();
-    public static Map<ServerPlayer, VirtualBalloon> ACTIVE_BALLOONS = new ConcurrentHashMap<>();
+    public static Map<UUID, Map<ResourceLocation, VirtualBalloon>> SPAWNED_BALLOONS = new ConcurrentHashMap<>();
 
     public static BalloonDatabaseStorage DATABASE = null;
     public static PlayerBalloonDataStorage PERSISTENT_DATA = null;
@@ -86,21 +88,15 @@ public class Balloons implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register(Balloons::onDisconnect);
 
         ServerLivingEntityEvents.AFTER_DEATH.register((livingEntity, damageSource) -> {
-            if (livingEntity instanceof ServerPlayer serverPlayer) {
-                removeBalloonIfActive(serverPlayer);
-            }
+            removeAllBalloons(livingEntity);
         });
-        ServerPlayerEvents.AFTER_RESPAWN.register(((oldPlayer, newPlayer, b) -> {
-            removeBalloonIfActive(oldPlayer);
-            addBalloonIfActive(newPlayer);
-        }));
         ServerPlayerEvents.COPY_FROM.register((serverPlayer, serverPlayer1, b) -> {
-            removeBalloonIfActive(serverPlayer);
+            removeAllBalloons(serverPlayer);
             addBalloonIfActive(serverPlayer1);
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, serverLevel) -> {
-            if (entity instanceof ServerPlayer serverPlayer) {
-                removeBalloonIfActive(serverPlayer);
+            if (entity instanceof LivingEntity livingEntity) {
+                removeAllBalloons(livingEntity);
             }
         });
         ServerEntityEvents.ENTITY_LOAD.register((entity, serverLevel) -> {
@@ -115,42 +111,72 @@ public class Balloons implements ModInitializer {
     }
 
     private static void onDisconnect(ServerGamePacketListenerImpl serverGamePacketListener, MinecraftServer server) {
-        removeBalloonIfActive(serverGamePacketListener.player);
+        removeAllBalloons(serverGamePacketListener.player);
     }
 
     private static void onTick(MinecraftServer server) {
         CompletableFuture.runAsync(() -> {
-            for (Map.Entry<ServerPlayer, VirtualBalloon> balloon : ACTIVE_BALLOONS.entrySet()) {
-                if (!balloon.getKey().hasDisconnected()) balloon.getValue().tick();
+            for (Map.Entry<UUID, Map<ResourceLocation, VirtualBalloon>> balloon : SPAWNED_BALLOONS.entrySet()) {
+                for (Map.Entry<ResourceLocation, VirtualBalloon> entry : balloon.getValue().entrySet()) {
+                    entry.getValue().tick();
+                }
             }
         });
     }
 
-    private static void setBalloon(ServerPlayer serverPlayer, ResourceLocation balloonId) {
+    private static void spawnBalloon(LivingEntity livingEntity, ResourceLocation balloonId) {
         var balloon = Balloons.REGISTERED_BALLOONS.get(balloonId);
         Model model = Models.getModel(balloon.data().model());
-        var virtualBalloon = new VirtualBalloon(serverPlayer);
+        var virtualBalloon = new VirtualBalloon(livingEntity);
         virtualBalloon.setModel(model, balloon.data().showLeash());
-        ACTIVE_BALLOONS.put(serverPlayer, virtualBalloon);
+
+        var spawnData = SPAWNED_BALLOONS.computeIfAbsent(livingEntity.getUUID(), (living) -> new Object2ObjectArrayMap<>());
+        spawnData.put(balloonId, virtualBalloon);
+
         if (balloon.data().animation() != null)
             virtualBalloon.play(balloon.data().animation());
+
         virtualBalloon.attach(balloon.data());
     }
 
-    public static void removeBalloonIfActive(ServerPlayer serverPlayer) {
-        var balloon = ACTIVE_BALLOONS.get(serverPlayer);
-        if (balloon != null) {
-            balloon.getHolder().destroy();
-            ACTIVE_BALLOONS.remove(serverPlayer);
+    public static void removeAllBalloons(LivingEntity livingEntity) {
+        var spawnData = SPAWNED_BALLOONS.get(livingEntity.getUUID());
+        if (spawnData != null) {
+            for (VirtualBalloon value : spawnData.values()) {
+                value.getHolder().destroy();
+            }
+            SPAWNED_BALLOONS.remove(livingEntity.getUUID());
+        }
+
+        VanillaCompat.TEMP_PROVIDER.removeActive(livingEntity.getUUID());
+    }
+
+    public static void removeBalloon(LivingEntity livingEntity, ResourceLocation id) {
+        var balloonMap = SPAWNED_BALLOONS.get(livingEntity.getUUID());
+        if (balloonMap != null) {
+            var virtualBalloon = balloonMap.get(id);
+            virtualBalloon.getHolder().destroy();
+            balloonMap.remove(id);
+
+            if (balloonMap.isEmpty())
+                SPAWNED_BALLOONS.remove(livingEntity.getUUID());
         }
     }
 
-    public static void addBalloonIfActive(ServerPlayer serverPlayer) {
-        if (!Balloons.ACTIVE_BALLOONS.containsKey(serverPlayer)) {
-            var active = StorageUtil.getActive(serverPlayer);
-            if (active != null && Balloons.REGISTERED_BALLOONS.containsKey(active)) {
-                setBalloon(serverPlayer, active);
+    public static void addBalloon(LivingEntity livingEntity, ResourceLocation balloonId) {
+        var balloonMap = SPAWNED_BALLOONS.computeIfAbsent(livingEntity.getUUID(), (living) -> new Object2ObjectArrayMap<>());
+        if (!balloonMap.containsKey(balloonId)) {
+            if (Balloons.REGISTERED_BALLOONS.containsKey(balloonId)) {
+                spawnBalloon(livingEntity, balloonId);
             }
+        }
+    }
+
+    public static void addBalloonIfActive(LivingEntity livingEntity) {
+        var balloonMap = SPAWNED_BALLOONS.computeIfAbsent(livingEntity.getUUID(), (living) -> new Object2ObjectArrayMap<>());
+        var active = StorageUtil.getActive(livingEntity);
+        if (active != null && !balloonMap.containsKey(active) && Balloons.REGISTERED_BALLOONS.containsKey(active)) {
+            spawnBalloon(livingEntity, active);
         }
     }
 }

@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
 import java.util.Map;
 
@@ -18,12 +19,14 @@ public class FilamentCompat {
     }
 
     public static void init() {
-        FilamentRegistrationEvents.ITEM.register((itemData, simpleItem) -> {
-            if (simpleItem.components().has(Balloons.COMPONENT)) {
-                var behaviourConf = simpleItem.components().get(Balloons.COMPONENT);
-                var configBalloon = new ModConfigBalloon(itemData.id(), null, behaviourConf);
-                Balloons.REGISTERED_BALLOONS.put(itemData.id(), configBalloon);
-            }
+        FilamentRegistrationEvents.ITEM.register((itemData, item) -> {
+            registerBalloon(itemData.id(), item);
+        });
+        FilamentRegistrationEvents.BLOCK.register((itemData, item, block) -> {
+            registerBalloon(itemData.id(), item);
+        });
+        FilamentRegistrationEvents.DECORATION.register((itemData, item, block) -> {
+            registerBalloon(itemData.id(), item);
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
@@ -32,6 +35,14 @@ public class FilamentCompat {
                     entry.getValue().setItem(BuiltInRegistries.ITEM.getValue(entry.getKey()).getDefaultInstance());
             }
         });
+    }
+
+    private static void registerBalloon(ResourceLocation id, Item item) {
+        if (item.components().has(Balloons.COMPONENT)) {
+            var behaviourConf = item.components().get(Balloons.COMPONENT);
+            var configBalloon = new ModConfigBalloon(id, null, behaviourConf);
+            Balloons.REGISTERED_BALLOONS.put(id, configBalloon);
+        }
     }
 
     public static Model getModel(String name) {

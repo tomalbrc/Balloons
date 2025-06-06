@@ -1,5 +1,6 @@
 package de.tomalbrc.balloons.impl;
 
+import de.tomalbrc.balloons.util.ClientboundSetEntityLinkPacketExt;
 import de.tomalbrc.bil.core.element.CollisionElement;
 import de.tomalbrc.bil.core.holder.base.SimpleAnimatedHolder;
 import de.tomalbrc.bil.core.holder.wrapper.Bone;
@@ -52,8 +53,11 @@ public class AnimatedBalloonHolder extends SimpleAnimatedHolder {
             var ridePacket = VirtualEntityUtils.createRidePacket(this.leashElement.getEntityId(), ids);
             var list = ObjectArrayList.<Packet<? super ClientGamePacketListener>>of(ridePacket);
 
-            if (this.leash)
-                list.add(new ClientboundSetEntityLinkPacket(player.player, player.player));
+            if (this.leash) {
+                var packet = new ClientboundSetEntityLinkPacket(player.player, player.player);
+                ((ClientboundSetEntityLinkPacketExt)packet).balloons$setCustomId(this.leashElement.getEntityId());
+                list.add(packet);
+            }
 
             var attributeInstance = new AttributeInstance(Attributes.SCALE, (instance) -> {});
             attributeInstance.setBaseValue(0.01);

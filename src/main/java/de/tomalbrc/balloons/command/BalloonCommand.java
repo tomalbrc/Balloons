@@ -23,8 +23,8 @@ public class BalloonCommand {
                             if (player != null) {
                                 StorageUtil.setActive(ctx.getSource().getPlayer(), id);
 
-                                Balloons.removeBalloonIfActive(player);
-                                Balloons.addBalloonIfActive(player);
+                                Balloons.removeAllBalloons(player);
+                                Balloons.addBalloon(player, id);
 
                                 return Command.SINGLE_SUCCESS;
                             }
@@ -35,7 +35,7 @@ public class BalloonCommand {
                             var player = ctx.getSource().getPlayer();
                             if (player != null) {
                                 StorageUtil.removeActive(player);
-                                Balloons.removeBalloonIfActive(player);
+                                Balloons.removeAllBalloons(player);
                                 return Command.SINGLE_SUCCESS;
                             }
 

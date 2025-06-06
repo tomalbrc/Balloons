@@ -5,15 +5,16 @@ import de.tomalbrc.bil.core.model.Model;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 
 public class VirtualBalloon {
     private AnimatedBalloonHolder animatedHolder;
 
-    private final ServerPlayer owner;
+    private final LivingEntity owner;
 
     private BalloonLink follower;
 
-    public VirtualBalloon(ServerPlayer owner) {
+    public VirtualBalloon(LivingEntity owner) {
         super();
         this.owner = owner;
     }
@@ -47,12 +48,12 @@ public class VirtualBalloon {
                     config.rotate(),
                     config.tilt()
             );
-            this.getHolder().startWatching(this.owner);
+            if (this.owner instanceof ServerPlayer serverPlayer) this.getHolder().startWatching(serverPlayer);
         }
     }
 
     public void tick() {
-        if (this.owner != null && !this.owner.hasDisconnected()) {
+        if (this.owner != null && !this.owner.isRemoved()) {
             var newPos = this.follower.update(this.owner.position(), this.owner.level().getGameTime());
             this.animatedHolder.setPosition(newPos);
             this.animatedHolder.setYaw(this.follower.getYaw());

@@ -3,36 +3,29 @@ package de.tomalbrc.balloons.filament;
 import de.tomalbrc.balloons.Balloons;
 import de.tomalbrc.balloons.util.StorageUtil;
 import de.tomalbrc.balloons.util.TempStorageProvider;
-import dev.emi.trinkets.api.event.TrinketUnequipCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 public class VanillaCompat {
-    public static final TempStorageProvider PROVIDER = new TempStorageProvider();
+    // not persistent when dead, tied to armor
+    public static final TempStorageProvider TEMP_PROVIDER = new TempStorageProvider();
 
     public static void init() {
         ServerEntityEvents.EQUIPMENT_CHANGE.register(((livingEntity, slot, prev, next) -> {
-            if (livingEntity instanceof ServerPlayer serverPlayer && prev.has(Balloons.COMPONENT)) {
-                Balloons.removeBalloonIfActive(serverPlayer);
-                PROVIDER.removeActive(serverPlayer.getUUID());
+            if (prev.has(Balloons.COMPONENT) && livingEntity.getEquipmentSlotForItem(prev) == slot) {
+                Balloons.removeBalloon(livingEntity, BuiltInRegistries.ITEM.getKey(prev.getItem()));
+                TEMP_PROVIDER.removeActive(livingEntity.getUUID());
             }
 
-            if (livingEntity instanceof ServerPlayer serverPlayer && next.has(Balloons.COMPONENT)) {
-                PROVIDER.setActive(serverPlayer.getUUID(), getBalloonId(next));
-                Balloons.addBalloonIfActive(serverPlayer);
-            }
-        }));
-        
-        TrinketUnequipCallback.EVENT.register(((itemStack, slotReference, livingEntity) -> {
-            if (livingEntity instanceof ServerPlayer serverPlayer && isValidBalloonItem(itemStack)) {
-                Balloons.removeBalloonIfActive(serverPlayer);
-                PROVIDER.removeActive(serverPlayer.getUUID());
+            if (next.has(Balloons.COMPONENT) && livingEntity.getEquipmentSlotForItem(next) == slot) {
+                TEMP_PROVIDER.setActive(livingEntity.getUUID(), getBalloonId(next));
+                Balloons.addBalloon(livingEntity, BuiltInRegistries.ITEM.getKey(next.getItem()));
             }
         }));
 
-        StorageUtil.addProvider(PROVIDER);
+        StorageUtil.addProvider(TEMP_PROVIDER);
     }
 
     public static boolean isValidBalloonItem(ItemStack itemStack) {

@@ -5,6 +5,7 @@ import de.tomalbrc.balloons.config.ModConfig;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -17,9 +18,9 @@ public class StorageUtil {
         PROVIDERS.add(provider);
     }
 
-    public static ResourceLocation getActive(ServerPlayer player) {
+    public static ResourceLocation getActive(LivingEntity entity) {
         for (Provider provider : PROVIDERS) {
-            var active = provider.getActiveBalloon(player.getUUID());
+            var active = provider.getActiveBalloon(entity.getUUID());
             if (active != null) {
                 return active;
             }
