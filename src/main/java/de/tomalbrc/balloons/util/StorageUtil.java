@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class StorageUtil {
-    static List<Provider> providers = new ObjectArrayList<>();
+    private static final List<Provider> PROVIDERS = new ObjectArrayList<>();
 
     public static void addProvider(Provider provider) {
-        providers.add(provider);
+        PROVIDERS.add(provider);
     }
 
     public static ResourceLocation getActive(ServerPlayer player) {
-        for (Provider provider : providers) {
+        for (Provider provider : PROVIDERS) {
             var active = provider.getActiveBalloon(player.getUUID());
             if (active != null) {
                 return active;
@@ -28,7 +28,7 @@ public class StorageUtil {
     }
 
     public static void setActive(ServerPlayer player, ResourceLocation id) {
-        if (ModConfig.getInstance().mongoDb.enabled) {
+        if (ModConfig.getInstance().mongoDb != null && ModConfig.getInstance().mongoDb.enabled) {
             Balloons.DATABASE.setActiveBalloon(player.getUUID(), id);
         } else {
             Balloons.PERSISTENT_DATA.setActiveBalloon(player.getUUID(), id);
@@ -36,7 +36,7 @@ public class StorageUtil {
     }
 
     public static void removeActive(ServerPlayer player) {
-        if (ModConfig.getInstance().mongoDb.enabled) {
+        if (ModConfig.getInstance().mongoDb != null && ModConfig.getInstance().mongoDb.enabled) {
             Balloons.DATABASE.removeActiveBalloon(player.getUUID());
         } else {
             Balloons.PERSISTENT_DATA.removeActiveBalloon(player.getUUID());

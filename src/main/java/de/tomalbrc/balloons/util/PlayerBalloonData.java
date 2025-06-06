@@ -22,7 +22,7 @@ public class PlayerBalloonData extends SavedData implements StorageUtil.Provider
     private final Map<UUID, ResourceLocation> activeData = new Object2ObjectArrayMap<>();
 
     public PlayerBalloonData() {
-        StorageUtil.providers.add(this);
+        StorageUtil.addProvider(this);
     }
 
     public PlayerBalloonData(Map<UUID, ResourceLocation> activeData) {

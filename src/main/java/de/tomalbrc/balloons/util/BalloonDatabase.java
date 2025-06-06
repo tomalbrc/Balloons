@@ -27,7 +27,7 @@ public class BalloonDatabase implements StorageUtil.Provider {
         MongoDatabase database = this.client.getDatabase(mongoConfig.database);
         this.collection = database.getCollection(mongoConfig.collection);
 
-        StorageUtil.providers.add(this);
+        StorageUtil.addProvider(this);
     }
 
     public static MongoClient createClient(MongoConfig config) {

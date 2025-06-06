@@ -63,7 +63,7 @@ public class Balloons implements ModInitializer {
 
             PERSISTENT_DATA = minecraftServer.overworld().getDataStorage().computeIfAbsent(PlayerBalloonData.TYPE);
 
-            if (ModConfig.getInstance().mongoDb.enabled)
+            if (ModConfig.getInstance().mongoDb != null && ModConfig.getInstance().mongoDb.enabled)
                 DATABASE = new BalloonDatabase(ModConfig.getInstance().mongoDb);
         });
 
