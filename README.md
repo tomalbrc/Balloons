@@ -8,7 +8,11 @@ A small **serverside mod for Fabric** that lets you attach custom balloon models
 
 # What it does
 
-This mod lets you define **balloons in a config file**, and then allows players to **show or hide one of them** using server commands.
+This mod lets you define **balloons in a config file**.
+Balloons can be permanent (persist after death, does not require them to be equipped)
+or based on items with the `minecraft:equippable` component or using [trinkets](https://modrinth.com/mod/trinkets-polymer)
+
+You can add the `balloons:balloon` component to any item.
 
 Each balloon is linked to a specific item, a model file, and an optional animation.
 
@@ -82,10 +86,19 @@ Here’s a minimal example:
 ```
 
 Each balloon entry includes:
-- `id`: internal identifier for the balloon
-- `item`: optional item used to represent it
-- `data.model`: the model filename (without extension)
-- `data.animation`: name of the animation to use, if any
+
+- `id`: Internal identifier for the balloon.
+- `item` (optional): The item used to represent the balloon.
+- `data.model`: The model filename (without extension or path), e.g., `"mynamespace:balloon_model"`.
+- `data.animation` (optional): Name of the animation to use. Defaults to `"idle"`.
+- `data.show_leash` (optional): Whether the leash is shown. Defaults to `true`.
+- `data.tilt` (optional): Whether the balloon tilts (pitch) while following the entity. Defaults to `true`.
+- `data.rotate` (optional): Whether the balloon rotates (yaw). Defaults to `true`.
+- `data.follow_speed` (optional): How quickly the balloon follows its target. Defaults to `0.25`.
+- `data.drag` (optional): Drag factor slowing the balloon's movement when the attached entity stopped moving. Defaults to `0.2`.
+- `data.bob_frequency` (optional): Frequency of the bobbing motion. Defaults to `0.2`.
+- `data.bob_amplitude` (optional): Amplitude (height) of the bobbing motion. Defaults to `0.2`.
+- `data.offset` (optional): Position offset relative to the attached entity.
 
 ---
 
@@ -100,9 +113,7 @@ If `username` and `password` are empty, it will try to connect without authentic
 
 # Commands
 
-This mod adds simple commands to let players **show or hide a balloon**.
-
-Available commands:
+This mod adds simple commands to allow permanent attachment of the balloon to the player and to remove it.
 
 ```
 /balloon show <id>
@@ -116,6 +127,7 @@ Example:
 ```
 
 This will attach the balloon with ID `test:one` (from your config) to the player.
+The balloon will respawn immediately after the player respawns
 
 ---
 
@@ -128,21 +140,9 @@ This will attach the balloon with ID `test:one` (from your config) to the player
 
 # filament support
 
-The mod comes with a filament behaviour:
-```
-{
-  "behaviour": {
-    "balloon": {
-      "model": "flower_balloon",
-      "animation": "idle"
-    }
-  }
-}
-```
-
-This will use the item's id for the balloon id in `/balloons activate <id>`
-
-The mod will also try to load blockbench models from filament datapacks if its installed and has the model loaded. Make sure to specify a namespace in this case!
+[Filament](https://modrinth.com/mod/filament) based items with the `balloons:balloon` will be automatically added as option to the `/balloon show <id>` command, using the items' id.
+The mod will also try to load blockbench models from filament datapacks if its installed and has the model loaded. 
+Make sure to specify a namespace in this case!
 
 # Notes
 
