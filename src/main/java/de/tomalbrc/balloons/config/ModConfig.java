@@ -2,6 +2,8 @@ package de.tomalbrc.balloons.config;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
+import de.tomalbrc.balloons.BalloonComponent;
+import de.tomalbrc.bil.json.SimpleCodecDeserializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.item.ItemStack;
 
@@ -18,6 +20,7 @@ public class ModConfig {
     static ModConfig instance;
     static Gson JSON = de.tomalbrc.bil.json.JSON.GENERIC_BUILDER
             .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackDeserializer())
+            .registerTypeHierarchyAdapter(BalloonComponent.class, new SimpleCodecDeserializer<>(BalloonComponent.CODEC))
             .create();
 
     @SerializedName("mongo_db")

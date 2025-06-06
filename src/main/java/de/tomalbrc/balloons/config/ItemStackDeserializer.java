@@ -24,8 +24,7 @@ import java.util.Optional;
 public class ItemStackDeserializer implements JsonDeserializer<ItemStack> {
     @Override
     public ItemStack deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        RegistryOps.RegistryInfoLookup registryInfoLookup = createContext(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
-        DataResult<Pair<ItemStack, JsonElement>> result = ItemStack.CODEC.decode(RegistryOps.create(JsonOps.INSTANCE, registryInfoLookup), jsonElement);
+        DataResult<Pair<ItemStack, JsonElement>> result = ItemStack.CODEC.decode(createContext(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)), jsonElement);
 
         if (result.resultOrPartial().isEmpty()) {
             Balloons.LOGGER.error("Skipping broken itemstack; could not load: {}", jsonElement.toString());
@@ -39,19 +38,7 @@ public class ItemStackDeserializer implements JsonDeserializer<ItemStack> {
         return result.resultOrPartial().get().getFirst();
     }
 
-    public static RegistryOps.RegistryInfoLookup createContext(RegistryAccess registryAccess) {
-        final Map<ResourceKey<? extends Registry<?>>, RegistryOps.RegistryInfo<?>> map = new HashMap<>();
-        registryAccess.registries().forEach((registryEntry) -> map.put(registryEntry.key(), createInfoForContextRegistry(registryEntry.value())));
-        return new RegistryOps.RegistryInfoLookup() {
-            @NotNull
-            @SuppressWarnings("unchecked")
-            public <T> Optional<RegistryOps.RegistryInfo<T>> lookup(ResourceKey<? extends Registry<? extends T>> resourceKey) {
-                return Optional.ofNullable((RegistryOps.RegistryInfo<T>) map.get(resourceKey));
-            }
-        };
-    }
-
-    public static <T> RegistryOps.RegistryInfo<T> createInfoForContextRegistry(Registry<T> registry) {
-        return new RegistryOps.RegistryInfo<>(registry, registry, registry.registryLifecycle());
+    public static RegistryOps<JsonElement> createContext(RegistryAccess registryAccess) {
+        return registryAccess.createSerializationContext(JsonOps.INSTANCE);
     }
 }
