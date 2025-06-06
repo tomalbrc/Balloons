@@ -2,6 +2,7 @@ package de.tomalbrc.balloons;
 
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.balloons.command.BalloonCommand;
+import de.tomalbrc.balloons.filament.TrinketCompat;
 import de.tomalbrc.balloons.impl.VirtualBalloon;
 import de.tomalbrc.balloons.filament.FilamentCompat;
 import de.tomalbrc.balloons.util.BalloonDatabase;
@@ -45,8 +46,12 @@ public class Balloons implements ModInitializer {
         Models.load();
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((minecraftServer, closeableResourceManager) -> Models.load());
 
-        if (FilamentCompat.isLoaded())
+        if (FilamentCompat.isLoaded()) {
             FilamentCompat.init();
+            if (TrinketCompat.isLoaded()) {
+                TrinketCompat.init();
+            }
+        }
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
             // load configs

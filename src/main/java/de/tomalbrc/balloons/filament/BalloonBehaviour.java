@@ -1,6 +1,7 @@
 package de.tomalbrc.balloons.filament;
 
 import de.tomalbrc.filament.api.behaviour.ItemBehaviour;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,5 +28,11 @@ public class BalloonBehaviour implements ItemBehaviour<BalloonBehaviour.Config> 
         public float bobFrequency = 0.2f;
         public float bobAmplitude = 0.2f;
         public Vec3 offset = new Vec3(0.5f, 2.f, 0.5f);
+
+        transient ResourceLocation modelId;
+        public ResourceLocation modelId() {
+            modelId = ResourceLocation.parse(model);
+            return modelId;
+        }
     }
 }
