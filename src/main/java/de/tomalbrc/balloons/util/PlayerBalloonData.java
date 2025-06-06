@@ -11,7 +11,7 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import java.util.Map;
 import java.util.UUID;
 
-public class PlayerBalloonData extends SavedData {
+public class PlayerBalloonData extends SavedData implements StorageUtil.Provider {
     public static final Codec<Map<UUID, ResourceLocation>> ACTIVE_DATA_CODEC = Codec.unboundedMap(UUIDUtil.STRING_CODEC, ResourceLocation.CODEC);
     public static final Codec<PlayerBalloonData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ACTIVE_DATA_CODEC.fieldOf("active").forGetter(data -> data.activeData)
@@ -21,12 +21,16 @@ public class PlayerBalloonData extends SavedData {
 
     private final Map<UUID, ResourceLocation> activeData = new Object2ObjectArrayMap<>();
 
-    public PlayerBalloonData() {}
+    public PlayerBalloonData() {
+        StorageUtil.providers.add(this);
+    }
 
     public PlayerBalloonData(Map<UUID, ResourceLocation> activeData) {
+        this();
         this.activeData.putAll(activeData);
     }
 
+    @Override
     public ResourceLocation getActiveBalloon(UUID playerUuid) {
         return this.activeData.get(playerUuid);
     }

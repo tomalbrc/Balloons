@@ -48,6 +48,7 @@ public class Balloons implements ModInitializer {
 
         if (FilamentCompat.isLoaded()) {
             FilamentCompat.init();
+
             if (TrinketCompat.isLoaded()) {
                 TrinketCompat.init();
             }

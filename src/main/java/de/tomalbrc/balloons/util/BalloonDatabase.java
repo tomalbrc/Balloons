@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.mongodb.client.model.Filters.eq;
 
-public class BalloonDatabase {
+public class BalloonDatabase implements StorageUtil.Provider {
     private final MongoClient client;
     private final MongoCollection<Document> collection;
 
@@ -26,6 +26,8 @@ public class BalloonDatabase {
         this.client = BalloonDatabase.createClient(mongoConfig);
         MongoDatabase database = this.client.getDatabase(mongoConfig.database);
         this.collection = database.getCollection(mongoConfig.collection);
+
+        StorageUtil.providers.add(this);
     }
 
     public static MongoClient createClient(MongoConfig config) {
@@ -59,6 +61,7 @@ public class BalloonDatabase {
         collection.deleteOne(eq("_id", playerUUID));
     }
 
+    @Override
     public ResourceLocation getActiveBalloon(UUID playerUUID) {
         Document doc = collection.find(eq("_id", playerUUID)).first();
         if (doc == null || !doc.containsKey("active")) return null;

@@ -16,6 +16,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,7 +37,33 @@ public class ModConfig {
             .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackDeserializer())
             .create();
 
-    public record ConfigBalloon(ResourceLocation id, ItemStack item, BalloonBehaviour.Config data) { }
+    public static class ConfigBalloon {
+        ResourceLocation id;
+        ItemStack item;
+        BalloonBehaviour.Config data;
+
+        public ConfigBalloon(ResourceLocation id, @Nullable ItemStack item, BalloonBehaviour.Config data) {
+            this.id = id;
+            this.item = item;
+            this.data = data;
+        }
+
+        public void setItem(ItemStack item) {
+            this.item = item;
+        }
+
+        public BalloonBehaviour.Config data() {
+            return data;
+        }
+
+        public ItemStack item() {
+            return item;
+        }
+
+        public ResourceLocation id() {
+            return id;
+        }
+    }
 
     @SerializedName("mongo_db")
     public MongoConfig mongoDb = new MongoConfig();
