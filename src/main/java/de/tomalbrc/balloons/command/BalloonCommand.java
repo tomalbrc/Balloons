@@ -5,7 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import de.tomalbrc.balloons.Balloons;
 import de.tomalbrc.balloons.util.BalloonSuggestionProvider;
 import de.tomalbrc.balloons.util.StorageUtil;
-import me.lucko.fabric.api.permissions.v0.Permissions;
+import de.tomalbrc.bil.util.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
