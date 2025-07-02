@@ -17,6 +17,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -87,19 +88,19 @@ public class AnimatedBalloonHolder extends SimpleAnimatedHolder {
     }
 
     @Override
-    public void updateElement(DisplayWrapper<?> display, @Nullable Pose pose) {
+    public void updateElement(ServerPlayer serverPlayer, DisplayWrapper<?> display, @Nullable Pose pose) {
         if (pose != null) {
-            this.applyPose(pose, display);
+            this.applyPose(serverPlayer, pose, display);
         } else {
-            this.applyPose(display.getDefaultPose(), display);
+            this.applyPose(serverPlayer, display.getDefaultPose(), display);
         }
     }
 
     @Override
-    protected void applyPose(Pose pose, DisplayWrapper<?> display) {
+    protected void applyPose(ServerPlayer serverPlayer, Pose pose, DisplayWrapper<?> display) {
         var m = new Matrix4f().rotateLocalX((float) Math.toRadians(-pitch)).rotateLocalY((float) Math.toRadians(-yaw)).mul(pose.matrix());
         m.translateLocal(0, -0.1f, 0);
-        display.element().setTransformation(m);
-        display.element().startInterpolationIfDirty();
+        display.element().setTransformation(serverPlayer, m);
+        display.element().startInterpolationIfDirty(serverPlayer);
     }
 }
