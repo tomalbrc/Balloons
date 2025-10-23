@@ -1,6 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.10-SNAPSHOT'
-    id 'com.gradleup.shadow' version '8.3.6'
+    id 'fabric-loom' version '1.11-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -9,11 +8,6 @@ group = project.maven_group
 
 base {
     archivesName = project.archives_base_name
-}
-
-configurations {
-    shade
-    implementation.extendsFrom(shadow)
 }
 
 repositories {
@@ -39,16 +33,22 @@ dependencies {
     modImplementation ("eu.pb4:polymer-blocks:${project.polymer_version}")
     modImplementation ("eu.pb4:polymer-resource-pack:${project.polymer_version}")
     modImplementation ("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
+    modImplementation ("eu.pb4:polymer-sound-patcher:${project.polymer_version}")
     modImplementation ("eu.pb4:polymer-virtual-entity:${project.polymer_version}")
     modImplementation ("eu.pb4:polymer-networking:${project.polymer_version}")
     modImplementation ("eu.pb4:polymer-autohost:${project.polymer_version}")
 
+    modImplementation include("eu.pb4:placeholder-api:${project.placeholder_api_version}")
+    modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+
     modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
 
-    modRuntimeOnly modCompileOnly("de.tomalbrc:filament:${project.filament_version}")
+    modApi("de.tomalbrc:filament:${project.filament_version}") {
+        transitive = false
+    }
     modCompileOnly("eu.pb4.polyport:trinkets:${trinkets_version}")
 
-    implementation shade('org.mongodb:mongodb-driver-sync:4.11.0')
+    implementation include('org.mongodb:mongodb-driver-sync:4.11.0')
 }
 
 processResources {
@@ -62,18 +62,6 @@ processResources {
                 "minecraft_version": project.minecraft_version,
                 "loader_version": project.loader_version
     }
-}
-
-shadowJar {
-    configurations = [project.configurations.shade]
-    relocate 'com.mongodb', 'de.tomalbrc.balloons.shadow.mongo'
-    relocate 'org.bson', 'de.tomalbrc.balloons.shadow.bson'
-    archiveClassifier.set("shadow")
-}
-
-remapJar {
-    dependsOn(shadowJar)
-    input.set(shadowJar.archivePath)
 }
 
 def targetJavaVersion = 21
