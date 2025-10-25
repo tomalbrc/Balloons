@@ -1,7 +1,8 @@
 package de.tomalbrc.balloons.filament;
 
 import de.tomalbrc.balloons.Balloons;
-import de.tomalbrc.balloons.config.ModConfigBalloon;
+import de.tomalbrc.balloons.component.ModComponents;
+import de.tomalbrc.balloons.config.ConfiguredBalloon;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.filament.api.event.FilamentRegistrationEvents;
 import de.tomalbrc.filament.registry.ModelRegistry;
@@ -30,7 +31,7 @@ public class FilamentCompat {
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
-            for (Map.Entry<ResourceLocation, ModConfigBalloon> entry : Balloons.REGISTERED_BALLOONS.entrySet()) {
+            for (Map.Entry<ResourceLocation, ConfiguredBalloon> entry : Balloons.all().entrySet()) {
                 if (entry.getValue().item() == null)
                     entry.getValue().setItem(BuiltInRegistries.ITEM.getValue(entry.getKey()).getDefaultInstance());
             }
@@ -38,10 +39,10 @@ public class FilamentCompat {
     }
 
     private static void registerBalloon(ResourceLocation id, Item item) {
-        if (item.components().has(Balloons.COMPONENT)) {
-            var behaviourConf = item.components().get(Balloons.COMPONENT);
-            var configBalloon = new ModConfigBalloon(id, null, behaviourConf);
-            Balloons.REGISTERED_BALLOONS.put(id, configBalloon);
+        if (item.components().has(ModComponents.BALLOON)) {
+            var behaviourConf = item.components().get(ModComponents.BALLOON);
+            var configBalloon = new ConfiguredBalloon(id, item.getDefaultInstance().getHoverName(), null, behaviourConf);
+            Balloons.all().put(id, configBalloon);
         }
     }
 

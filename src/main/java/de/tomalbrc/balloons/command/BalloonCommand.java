@@ -3,6 +3,7 @@ package de.tomalbrc.balloons.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import de.tomalbrc.balloons.Balloons;
+import de.tomalbrc.balloons.config.ModConfig;
 import de.tomalbrc.balloons.util.BalloonSuggestionProvider;
 import de.tomalbrc.balloons.util.StorageUtil;
 import de.tomalbrc.bil.util.Permissions;
@@ -16,6 +17,10 @@ import static net.minecraft.commands.Commands.literal;
 public class BalloonCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         var rootNode = Commands.literal("balloons").requires(Permissions.require("balloons.command", 2))
+                .then(literal("reload").executes(ctx -> {
+                    ModConfig.load();
+                    return Command.SINGLE_SUCCESS;
+                }))
                 .then(literal("activate")
                         .then(argument("id", ResourceLocationArgument.id()).suggests(new BalloonSuggestionProvider()).executes(ctx -> {
                             var id = ResourceLocationArgument.getId(ctx, "id");

@@ -2,7 +2,8 @@ package de.tomalbrc.balloons.mixin;
 
 import de.tomalbrc.balloons.util.ClientboundSetEntityLinkPacketExt;
 import net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 

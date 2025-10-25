@@ -2,17 +2,20 @@ package de.tomalbrc.balloons;
 
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.balloons.command.BalloonCommand;
+import de.tomalbrc.balloons.component.ModComponents;
+import de.tomalbrc.balloons.config.ConfiguredBalloon;
 import de.tomalbrc.balloons.config.ModConfig;
-import de.tomalbrc.balloons.config.ModConfigBalloon;
 import de.tomalbrc.balloons.filament.FilamentCompat;
 import de.tomalbrc.balloons.filament.TrinketCompat;
 import de.tomalbrc.balloons.filament.VanillaCompat;
 import de.tomalbrc.balloons.impl.VirtualBalloon;
-import de.tomalbrc.balloons.util.BalloonDatabaseStorage;
-import de.tomalbrc.balloons.util.PlayerBalloonDataStorage;
+import de.tomalbrc.balloons.storage.DatabaseConfig;
+import de.tomalbrc.balloons.storage.MongoStorage;
+import de.tomalbrc.balloons.storage.hikari.MariaStorage;
+import de.tomalbrc.balloons.storage.hikari.PostgresStorage;
+import de.tomalbrc.balloons.storage.hikari.SqliteStorage;
 import de.tomalbrc.balloons.util.StorageUtil;
 import de.tomalbrc.bil.core.model.Model;
-import eu.pb4.polymer.core.api.other.PolymerComponent;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -23,9 +26,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.core.Registry;
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,22 +39,36 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Balloons implements ModInitializer {
-    public static Map<ResourceLocation, ModConfigBalloon> REGISTERED_BALLOONS = new Object2ObjectArrayMap<>();
+    public static final String MODID = "balloons";
     public static Map<UUID, Map<ResourceLocation, VirtualBalloon>> SPAWNED_BALLOONS = new ConcurrentHashMap<>();
 
-    public static BalloonDatabaseStorage DATABASE = null;
-    public static PlayerBalloonDataStorage PERSISTENT_DATA = null;
+    public static Map<ResourceLocation, ConfiguredBalloon> GROUPED = new Object2ObjectArrayMap<>();
+    public static Map<ResourceLocation, ConfiguredBalloon> UNGROUPED = new Object2ObjectArrayMap<>();
+
+    public static void addGrouped(ResourceLocation id, ConfiguredBalloon balloon) {
+        GROUPED.put(id, balloon);
+    }
+
+    public static void addUngrouped(ResourceLocation id, ConfiguredBalloon balloon) {
+        UNGROUPED.put(id, balloon);
+    }
+
+    public static Map<ResourceLocation, ConfiguredBalloon> all() {
+        Map<ResourceLocation, ConfiguredBalloon> map = new Object2ObjectArrayMap<>();
+        map.putAll(GROUPED);
+        map.putAll(UNGROUPED);
+        return map;
+    }
+
+    public static StorageUtil.Provider STORAGE = null;
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static DataComponentType<BalloonComponent> COMPONENT = DataComponentType.<BalloonComponent>builder().persistent(BalloonComponent.CODEC).build();
-
     @Override
     public void onInitialize() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> BalloonCommand.register(dispatcher));
+        ModComponents.register();
 
-        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath("balloons", "balloon"), COMPONENT);
-        PolymerComponent.registerDataComponent(COMPONENT);
+        CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> BalloonCommand.register(dispatcher));
 
         Models.load();
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((minecraftServer, closeableResourceManager) -> Models.load());
@@ -72,14 +86,11 @@ public class Balloons implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
             // load configs
             ModConfig.load();
-            for (ModConfigBalloon configBalloon : ModConfig.getInstance().balloons) {
-                REGISTERED_BALLOONS.put(configBalloon.id(), configBalloon);
+            for (ConfiguredBalloon configBalloon : ModConfig.getInstance().balloons) {
+                UNGROUPED.put(configBalloon.id(), configBalloon);
             }
 
-            if (ModConfig.getInstance().mongoDb != null && ModConfig.getInstance().mongoDb.enabled)
-                DATABASE = new BalloonDatabaseStorage(ModConfig.getInstance().mongoDb);
-            else
-                PERSISTENT_DATA = minecraftServer.overworld().getDataStorage().computeIfAbsent(PlayerBalloonDataStorage.TYPE);
+            STORAGE = getStorage();
         });
 
         ServerTickEvents.END_SERVER_TICK.register(Balloons::onTick);
@@ -125,7 +136,7 @@ public class Balloons implements ModInitializer {
     }
 
     private static void spawnBalloon(LivingEntity livingEntity, ResourceLocation balloonId) {
-        var balloon = Balloons.REGISTERED_BALLOONS.get(balloonId);
+        var balloon = Balloons.all().get(balloonId);
         Model model = Models.getModel(balloon.data().model());
         var virtualBalloon = new VirtualBalloon(livingEntity);
         virtualBalloon.setModel(model, balloon.data().showLeash());
@@ -164,7 +175,7 @@ public class Balloons implements ModInitializer {
     public static void addBalloon(LivingEntity livingEntity, ResourceLocation balloonId) {
         var balloonMap = SPAWNED_BALLOONS.computeIfAbsent(livingEntity.getUUID(), (living) -> new Object2ObjectArrayMap<>());
         if (!balloonMap.containsKey(balloonId)) {
-            if (Balloons.REGISTERED_BALLOONS.containsKey(balloonId)) {
+            if (Balloons.all().containsKey(balloonId)) {
                 spawnBalloon(livingEntity, balloonId);
             }
         }
@@ -173,8 +184,28 @@ public class Balloons implements ModInitializer {
     public static void addBalloonIfActive(LivingEntity livingEntity) {
         var balloonMap = SPAWNED_BALLOONS.computeIfAbsent(livingEntity.getUUID(), (living) -> new Object2ObjectArrayMap<>());
         var active = StorageUtil.getActive(livingEntity);
-        if (active != null && !balloonMap.containsKey(active) && Balloons.REGISTERED_BALLOONS.containsKey(active)) {
+        if (active != null && !balloonMap.containsKey(active) && Balloons.all().containsKey(active)) {
             spawnBalloon(livingEntity, active);
         }
+    }
+
+    public static StorageUtil.Provider getStorage() {
+        if (STORAGE != null) return STORAGE;
+
+        ModConfig config = ModConfig.getInstance();
+        DatabaseConfig dbConfig = config.database;
+        StorageUtil.Type type = config.storageType;
+
+        if (dbConfig != null && type != null && type != StorageUtil.Type.SQLITE) {
+            switch (type) {
+                case MARIADB -> STORAGE = new MariaStorage(dbConfig);
+                case MONGODB -> STORAGE = new MongoStorage(dbConfig);
+                case POSTGRESQL -> STORAGE = new PostgresStorage(dbConfig);
+            }
+        } else {
+            STORAGE = new SqliteStorage(dbConfig);
+        }
+
+        return STORAGE;
     }
 }

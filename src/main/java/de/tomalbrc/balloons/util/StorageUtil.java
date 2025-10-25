@@ -1,8 +1,6 @@
 package de.tomalbrc.balloons.util;
 
 import de.tomalbrc.balloons.Balloons;
-import de.tomalbrc.balloons.config.ModConfig;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,40 +10,38 @@ import java.util.List;
 import java.util.UUID;
 
 public class StorageUtil {
-    private static final List<Provider> PROVIDERS = new ObjectArrayList<>();
-
-    public static void addProvider(Provider provider) {
-        PROVIDERS.add(provider);
-    }
-
     public static ResourceLocation getActive(LivingEntity entity) {
-        for (Provider provider : PROVIDERS) {
-            var active = provider.getActiveBalloon(entity.getUUID());
-            if (active != null) {
-                return active;
-            }
-        }
-
-        return null;
+        return Balloons.STORAGE.getActive(entity.getUUID());
     }
 
-    public static void setActive(ServerPlayer player, ResourceLocation id) {
-        if (ModConfig.getInstance().mongoDb != null && ModConfig.getInstance().mongoDb.enabled) {
-            Balloons.DATABASE.setActiveBalloon(player.getUUID(), id);
-        } else {
-            Balloons.PERSISTENT_DATA.setActiveBalloon(player.getUUID(), id);
-        }
+    public static boolean setActive(ServerPlayer player, ResourceLocation id) {
+        return Balloons.STORAGE.setActive(player.getUUID(), id);
     }
 
-    public static void removeActive(ServerPlayer player) {
-        if (ModConfig.getInstance().mongoDb != null && ModConfig.getInstance().mongoDb.enabled) {
-            Balloons.DATABASE.removeActiveBalloon(player.getUUID());
-        } else {
-            Balloons.PERSISTENT_DATA.removeActiveBalloon(player.getUUID());
-        }
+    public static boolean removeActive(ServerPlayer player) {
+        return Balloons.STORAGE.removeActive(player.getUUID());
+    }
+
+    public enum Type {
+        MARIADB,
+        POSTGRESQL,
+        SQLITE,
+        MONGODB,
     }
 
     public interface Provider {
-        @Nullable ResourceLocation getActiveBalloon(UUID serverPlayer);
+        boolean add(UUID playerUUID, ResourceLocation id);
+
+        boolean remove(UUID playerUUID, ResourceLocation id);
+
+        boolean removeActive(UUID playerUUID);
+
+        boolean setActive(UUID playerUUID, ResourceLocation id);
+
+        @Nullable ResourceLocation getActive(UUID serverPlayer);
+
+        List<ResourceLocation> list(UUID player);
+
+        default void close() {}
     }
 }
