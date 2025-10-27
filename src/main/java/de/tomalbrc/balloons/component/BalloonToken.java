@@ -33,5 +33,6 @@ public record BalloonToken(
     @Override
     public void addToTooltip(Item.TooltipContext tooltipContext, Consumer<Component> consumer, TooltipFlag tooltipFlag, DataComponentGetter dataComponentGetter) {
         consumer.accept(TextUtil.parse(String.format(ModConfig.getInstance().messages.componentTooltip, Balloons.all().get(this.id).title())));
+
     }
 }

@@ -62,7 +62,7 @@ public class BrowseGui extends LayeredGui {
 
             for (var entry : available) {
                 var balloon = entry.getValue();
-                GuiElementBuilder b = balloon.guiElementBuilder(false);
+                GuiElementBuilder b = balloon.guiElementBuilder();
                 if (owned.contains(entry.getKey())) {
                     b.addLoreLine(Component.empty());
                     b.addLoreLine(Component.empty().append(Component.empty().withStyle(ConfiguredBalloon.EMPTY).append(TextUtil.parse(ModConfig.getInstance().messages.alreadyOwning))));
@@ -78,7 +78,7 @@ public class BrowseGui extends LayeredGui {
             var available = Balloons.all();
             for (var entry : available.entrySet()) {
                 ConfiguredBalloon balloon = entry.getValue();
-                GuiElementBuilder b = balloon.guiElementBuilder(false);
+                GuiElementBuilder b = balloon.guiElementBuilder();
                 if (owned.contains(entry.getKey())) {
                     b.addLoreLine(Component.empty());
                     b.addLoreLine(Component.empty().append(Component.empty().withStyle(ConfiguredBalloon.EMPTY).append(TextUtil.parse(ModConfig.getInstance().messages.alreadyOwning))));

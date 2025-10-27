@@ -16,13 +16,13 @@ public class TrinketCompat {
         TrinketEquipCallback.EVENT.register(((itemStack, slotReference, livingEntity) -> {
             if (livingEntity instanceof ServerPlayer serverPlayer && VanillaCompat.isValidBalloonItem(itemStack)) {
                 VanillaCompat.TEMP_PROVIDER.setActive(serverPlayer.getUUID(), VanillaCompat.getBalloonId(itemStack));
-                Balloons.addBalloon(serverPlayer, BuiltInRegistries.ITEM.getKey(itemStack.getItem()));
+                Balloons.spawnBalloon(serverPlayer, BuiltInRegistries.ITEM.getKey(itemStack.getItem()));
             }
         }));
 
         TrinketUnequipCallback.EVENT.register(((itemStack, slotReference, livingEntity) -> {
             if (livingEntity instanceof ServerPlayer serverPlayer && VanillaCompat.isValidBalloonItem(itemStack)) {
-                Balloons.removeBalloon(serverPlayer, BuiltInRegistries.ITEM.getKey(itemStack.getItem()));
+                Balloons.despawnBalloon(serverPlayer);
                 VanillaCompat.TEMP_PROVIDER.removeActive(serverPlayer.getUUID());
             }
         }));

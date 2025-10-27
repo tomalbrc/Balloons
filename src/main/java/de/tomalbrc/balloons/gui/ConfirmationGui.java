@@ -5,6 +5,7 @@ import de.tomalbrc.balloons.component.BalloonToken;
 import de.tomalbrc.balloons.component.ModComponents;
 import de.tomalbrc.balloons.config.ConfiguredBalloon;
 import de.tomalbrc.balloons.config.ModConfig;
+import de.tomalbrc.balloons.util.StorageUtil;
 import de.tomalbrc.balloons.util.TextUtil;
 import de.tomalbrc.balloons.util.Util;
 import eu.pb4.sgui.api.GuiHelpers;
@@ -49,7 +50,7 @@ public class ConfirmationGui extends SimpleGui {
     private void confirm() {
         Util.clickSound(player);
 
-        if (Balloons.STORAGE.remove(player.getUUID(), id)) {
+        if (StorageUtil.remove(player.getUUID(), id)) {
             ConfiguredBalloon balloon = Balloons.all().get(id);
             if (balloon == null) {
                 close();

@@ -11,18 +11,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class ConfiguredBalloon {
     public static Style EMPTY = Style.EMPTY.withColor(ChatFormatting.WHITE).withUnderlined(false).withItalic(false).withObfuscated(false).withStrikethrough(false);
 
     ResourceLocation id;
     @Nullable ItemStack item;
     BalloonProperties data;
-    Component title;
+    String title;
+    List<String> lore;
     boolean glint;
     String permission;
     int permissionLevel;
 
-    public ConfiguredBalloon(ResourceLocation id, Component title, @Nullable ItemStack item, BalloonProperties data) {
+    public ConfiguredBalloon(ResourceLocation id, String title, @Nullable ItemStack item, BalloonProperties data) {
         this.id = id;
         this.item = item;
         this.data = data;
@@ -38,14 +41,14 @@ public class ConfiguredBalloon {
     }
 
     public ItemStack item() {
-        return item;
+        return item == null ? null : item.copy();
     }
 
     public ResourceLocation id() {
         return id;
     }
 
-    public Component title() {
+    public String title() {
         return title;
     }
 
@@ -58,31 +61,14 @@ public class ConfiguredBalloon {
     }
 
     public GuiElementBuilder guiElementBuilder() {
-        return guiElementBuilder(true);
-    }
-
-    public GuiElementBuilder guiElementBuilder(boolean playable) {
-        var builder = GuiElementBuilder.from(item == null ? Items.PAPER.getDefaultInstance() : item);
-        builder.addLoreLine(Component.empty());
-        if (playable) {
-            builder.addLoreLine(Component.empty());
-            builder.addLoreLine(Component.empty().append(Component.empty().withStyle(EMPTY).append(TextUtil.parse(ModConfig.getInstance().messages.emotePlayTooltip))));
-
-            builder.addLoreLine(Component.empty());
-            builder.addLoreLine(Component.empty().append(Component.empty().withStyle(EMPTY).append(TextUtil.parse(ModConfig.getInstance().messages.emoteGetItemTooltip))));
+        GuiElementBuilder builder = GuiElementBuilder.from(item == null ? Items.PAPER.getDefaultInstance() : item);
+        builder.setName(title == null ? Component.literal(id.toString()) : TextUtil.parse(title));
+        if (lore != null) {
+            for (String string : lore) {
+                builder.addLoreLine(Component.empty().withStyle(EMPTY).append(TextUtil.parse(string)));
+            }
         }
         builder.glow(glint);
         return builder;
-    }
-
-    private String duration(int duration) {
-        String formatted;
-        if (duration == -1) {
-            formatted = ModConfig.getInstance().messages.untilStopped;
-        } else {
-            formatted = duration + "s";
-        }
-
-        return formatted;
     }
 }

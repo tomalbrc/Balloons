@@ -15,13 +15,13 @@ public class VanillaCompat {
     public static void init() {
         ServerEntityEvents.EQUIPMENT_CHANGE.register(((livingEntity, slot, prev, next) -> {
             if (prev.has(ModComponents.BALLOON) && livingEntity.getEquipmentSlotForItem(prev) == slot) {
-                Balloons.removeBalloon(livingEntity, BuiltInRegistries.ITEM.getKey(prev.getItem()));
+                Balloons.despawnBalloon(livingEntity);
                 TEMP_PROVIDER.removeActive(livingEntity.getUUID());
             }
 
             if (next.has(ModComponents.BALLOON) && livingEntity.getEquipmentSlotForItem(next) == slot) {
+                Balloons.spawnBalloon(livingEntity, BuiltInRegistries.ITEM.getKey(next.getItem()));
                 TEMP_PROVIDER.setActive(livingEntity.getUUID(), getBalloonId(next));
-                Balloons.addBalloon(livingEntity, BuiltInRegistries.ITEM.getKey(next.getItem()));
             }
         }));
     }

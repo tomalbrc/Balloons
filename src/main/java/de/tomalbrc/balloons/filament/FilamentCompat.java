@@ -1,6 +1,7 @@
 package de.tomalbrc.balloons.filament;
 
 import de.tomalbrc.balloons.Balloons;
+import de.tomalbrc.balloons.component.BalloonProperties;
 import de.tomalbrc.balloons.component.ModComponents;
 import de.tomalbrc.balloons.config.ConfiguredBalloon;
 import de.tomalbrc.bil.core.model.Model;
@@ -40,9 +41,10 @@ public class FilamentCompat {
 
     private static void registerBalloon(ResourceLocation id, Item item) {
         if (item.components().has(ModComponents.BALLOON)) {
-            var behaviourConf = item.components().get(ModComponents.BALLOON);
-            var configBalloon = new ConfiguredBalloon(id, item.getDefaultInstance().getHoverName(), null, behaviourConf);
-            Balloons.all().put(id, configBalloon);
+            BalloonProperties properties = item.components().get(ModComponents.BALLOON);
+            assert properties != null;
+            ConfiguredBalloon configBalloon = new ConfiguredBalloon(id, properties.title(), null, properties);
+            Balloons.UNGROUPED.put(id, configBalloon);
         }
     }
 

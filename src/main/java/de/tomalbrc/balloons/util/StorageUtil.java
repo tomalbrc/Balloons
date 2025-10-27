@@ -11,16 +11,33 @@ import java.util.UUID;
 
 public class StorageUtil {
     public static ResourceLocation getActive(LivingEntity entity) {
-        return Balloons.STORAGE.getActive(entity.getUUID());
+        return Balloons.getStorage().getActive(entity.getUUID());
     }
 
     public static boolean setActive(ServerPlayer player, ResourceLocation id) {
-        return Balloons.STORAGE.setActive(player.getUUID(), id);
+        return Balloons.getStorage().setActive(player.getUUID(), id);
     }
 
     public static boolean removeActive(ServerPlayer player) {
-        return Balloons.STORAGE.removeActive(player.getUUID());
+        return Balloons.getStorage().removeActive(player.getUUID());
     }
+
+    public static boolean add(UUID target, ResourceLocation id) {
+        return Balloons.getStorage().add(target, id);
+    }
+
+    public static boolean remove(UUID target, ResourceLocation id) {
+        return Balloons.getStorage().remove(target, id);
+    }
+
+    public static List<ResourceLocation> list(UUID target) {
+        return Balloons.getStorage().list(target);
+    }
+
+    public static boolean owns(ServerPlayer player, ResourceLocation id) {
+        return Balloons.getStorage().list(player.getUUID()).contains(id);
+    }
+
 
     public enum Type {
         MARIADB,

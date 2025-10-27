@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
 public record BalloonProperties(
+        String title,
         String model,
         String animation,
         boolean showLeash,
@@ -19,6 +20,7 @@ public record BalloonProperties(
         Vec3 offset
 ) implements PolymerComponent {
     public static final Codec<BalloonProperties> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.STRING.optionalFieldOf("title", "Balloon").forGetter(BalloonProperties::title),
             Codec.STRING.fieldOf("model").forGetter(BalloonProperties::model),
             Codec.STRING.optionalFieldOf("animation", "idle").forGetter(BalloonProperties::animation),
             Codec.BOOL.optionalFieldOf("show_leash", true).forGetter(BalloonProperties::showLeash),

@@ -22,7 +22,7 @@ public record ConfiguredCategory(
         List<String> lore,
         ResourceLocation model,
         boolean glint,
-        Map<ResourceLocation, ConfiguredBalloon> balloons
+        Map<ResourceLocation, de.tomalbrc.balloons.config.ConfiguredBalloon> balloons
 ) {
     public ItemStack itemStack() {
         ItemStack itemStack;
@@ -32,7 +32,7 @@ public record ConfiguredCategory(
         else
             itemStack = BuiltInRegistries.ITEM.getValue(item).getDefaultInstance();
 
-        if (title != null) itemStack.set(DataComponents.ITEM_NAME, Component.empty().append(Component.empty().withStyle(ConfiguredBalloon.EMPTY).append(TextUtil.parse(title))));
+        if (title != null) itemStack.set(DataComponents.ITEM_NAME, Component.empty().append(Component.empty().withStyle(de.tomalbrc.balloons.config.ConfiguredBalloon.EMPTY).append(TextUtil.parse(title))));
         if (model != null)
             itemStack.set(DataComponents.ITEM_MODEL, model);
 
@@ -42,7 +42,7 @@ public record ConfiguredCategory(
     public GuiElementBuilder guiElementBuilder() {
         var builder = GuiElementBuilder.from(itemStack());
         if (lore != null) for (String string : lore) {
-            builder.addLoreLine(Component.empty().append(Component.empty().withStyle(ConfiguredBalloon.EMPTY).append(TextUtil.parse(string))));
+            builder.addLoreLine(Component.empty().append(Component.empty().withStyle(de.tomalbrc.balloons.config.ConfiguredBalloon.EMPTY).append(TextUtil.parse(string))));
         }
         builder.glow(glint());
         return builder;
@@ -59,7 +59,7 @@ public record ConfiguredCategory(
         private final List<String> lore = new ObjectArrayList<>();
         private ResourceLocation model;
         private boolean glint;
-        private final Map<ResourceLocation, ConfiguredBalloon> balloons = new Object2ObjectOpenHashMap<>();
+        private final Map<ResourceLocation, de.tomalbrc.balloons.config.ConfiguredBalloon> balloons = new Object2ObjectOpenHashMap<>();
 
         private Builder() {}
 
@@ -88,7 +88,7 @@ public record ConfiguredCategory(
             return this;
         }
 
-        public Builder addBalloon(ResourceLocation id, ConfiguredBalloon balloon) {
+        public Builder addBalloon(ResourceLocation id, de.tomalbrc.balloons.config.ConfiguredBalloon balloon) {
             this.balloons.put(id, balloon);
             return this;
         }

@@ -24,7 +24,7 @@ public class Categories {
     public static void add(String id, ConfiguredCategory category) {
         CATEGORIES.put(id, category);
         for (var entry : category.balloons().entrySet()) {
-            Balloons.addGrouped(entry.getKey(), entry.getValue());
+            de.tomalbrc.balloons.Balloons.addGrouped(entry.getKey(), entry.getValue());
         }
     }
 
@@ -45,19 +45,19 @@ public class Categories {
 
                         String id = category.id();
                         if (id == null || id.isBlank()) {
-                            Balloons.LOGGER.error("Warning: category in {} has no id; skipping", path);
+                            de.tomalbrc.balloons.Balloons.LOGGER.error("Warning: category in {} has no id; skipping", path);
                             return;
                         }
 
                         add(id, category);
                     } catch (JsonSyntaxException e) {
-                        Balloons.LOGGER.error("JSON syntax error in file {}: {}", path, e.getMessage());
+                        de.tomalbrc.balloons.Balloons.LOGGER.error("JSON syntax error in file {}: {}", path, e.getMessage());
                     } catch (IOException e) {
-                        Balloons.LOGGER.error("I/O error reading file {}: {}", path, e.getMessage());
+                        de.tomalbrc.balloons.Balloons.LOGGER.error("I/O error reading file {}: {}", path, e.getMessage());
                     }
                 });
             } catch (IOException e) {
-                Balloons.LOGGER.error("I/O error listing directory {}: {}", dir, e.getMessage());
+                de.tomalbrc.balloons.Balloons.LOGGER.error("I/O error listing directory {}: {}", dir, e.getMessage());
             }
         } else {
             Balloons.LOGGER.error("Categories directory not found: {}", dir);

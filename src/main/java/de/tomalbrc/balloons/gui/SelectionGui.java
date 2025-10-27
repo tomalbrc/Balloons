@@ -3,6 +3,7 @@ package de.tomalbrc.balloons.gui;
 import de.tomalbrc.balloons.Balloons;
 import de.tomalbrc.balloons.config.ConfiguredBalloon;
 import de.tomalbrc.balloons.config.ModConfig;
+import de.tomalbrc.balloons.util.StorageUtil;
 import de.tomalbrc.balloons.util.TextUtil;
 import de.tomalbrc.balloons.util.Util;
 import eu.pb4.sgui.api.ClickType;
@@ -11,6 +12,7 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.layered.Layer;
 import eu.pb4.sgui.api.gui.layered.LayeredGui;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -24,9 +26,16 @@ public class SelectionGui extends LayeredGui {
     private final Layer contentLayer;
     private int page = 0;
 
+    private ResourceLocation active;
+    List<ResourceLocation> owned;
+
+
     public SelectionGui(ServerPlayer player, boolean addBackButton) {
         super(Util.menuTypeForHeight(ModConfig.getInstance().gui.selectionMenuHeight), player, false);
         this.addBackButton = addBackButton;
+
+        this.active = StorageUtil.getActive(getPlayer());
+        this.owned = Balloons.getStorage().list(getPlayer().getUUID());
 
         this.contentLayer = new Layer(this.getHeight() - 2, this.getWidth() - 2);
         addLayer(this.contentLayer, 1, 1);
@@ -38,7 +47,6 @@ public class SelectionGui extends LayeredGui {
 
     private List<ConfiguredBalloon> availableBalloons() {
         List<ConfiguredBalloon> res = new ObjectArrayList<>();
-        var owned = Balloons.getStorage().list(getPlayer().getUUID());
         for (Map.Entry<ResourceLocation, ConfiguredBalloon> entry : Balloons.all().entrySet()) {
             if (owned.contains(entry.getKey())) {
                 res.add(entry.getValue());
@@ -123,18 +131,32 @@ public class SelectionGui extends LayeredGui {
 
     private @NotNull GuiElementBuilder getGuiElementBuilder(ConfiguredBalloon configuredBalloon) {
         GuiElementBuilder builder = configuredBalloon.guiElementBuilder();
+        boolean isActive = configuredBalloon.id().equals(active);
+        if (!isActive) {
+            builder.addLoreLine(Component.empty());
+            builder.addLoreLine(Component.empty().withStyle(ConfiguredBalloon.EMPTY).append(TextUtil.parse(ModConfig.getInstance().messages.equipTooltip)));
+        }
+        builder.addLoreLine(Component.empty());
+        builder.addLoreLine(Component.empty().withStyle(ConfiguredBalloon.EMPTY).append(TextUtil.parse(isActive ? ModConfig.getInstance().messages.unequipTooltip : ModConfig.getInstance().messages.getItemTooltip)));
         builder.setCallback((index, type, action) -> {
             Util.clickSound(getPlayer());
 
             if (type == ClickType.MOUSE_LEFT) {
-                Balloons.getStorage().setActive(getPlayer().getUUID(), configuredBalloon.id());
-                this.close();
+                if (!isActive) {
+                    Balloons.getStorage().setActive(getPlayer().getUUID(), configuredBalloon.id());
+                    Balloons.spawnActive(getPlayer());
+                    this.active = configuredBalloon.id();
+                    renderPage();
+                }
             } else {
-                for (Map.Entry<ResourceLocation, ConfiguredBalloon> entry : Balloons.all().entrySet()) {
-                    if (entry.getValue() == configuredBalloon) {
-                        var ignored = new ConfirmationGui(getPlayer(), entry.getKey(), () -> new SelectionGui(getPlayer(), false)).open();
-                        return;
-                    }
+                if (configuredBalloon.id().equals(this.active)) {
+                    Balloons.despawnBalloon(getPlayer());
+                    StorageUtil.removeActive(getPlayer());
+                    this.active = null;
+                    renderPage();
+                } else {
+                    var gui = new ConfirmationGui(getPlayer(), configuredBalloon.id(), () -> new SelectionGui(getPlayer(), false));
+                    gui.open();
                 }
             }
         });
