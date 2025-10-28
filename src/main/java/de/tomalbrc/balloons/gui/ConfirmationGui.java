@@ -60,7 +60,6 @@ public class ConfirmationGui extends SimpleGui {
             ItemStack item = balloon.item();
             if (item != null) {
                 item.set(ModComponents.TOKEN, new BalloonToken(id, balloon.permission(), balloon.permissionLevel()));
-
                 player.addItem(item);
 
                 if (!item.isEmpty() && item.getCount() > 0) {

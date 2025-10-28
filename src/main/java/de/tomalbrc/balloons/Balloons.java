@@ -15,7 +15,6 @@ import de.tomalbrc.balloons.storage.hikari.MariaStorage;
 import de.tomalbrc.balloons.storage.hikari.PostgresStorage;
 import de.tomalbrc.balloons.storage.hikari.SqliteStorage;
 import de.tomalbrc.balloons.util.StorageUtil;
-import de.tomalbrc.bil.core.model.Model;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -129,25 +128,20 @@ public class Balloons implements ModInitializer {
             return;
 
         var balloon = Balloons.all().get(balloonId);
-        Model model = Models.getModel(balloon.data().model());
         var virtualBalloon = new VirtualBalloon(livingEntity);
-        virtualBalloon.setModel(model, balloon.data().showLeash());
 
         var old = SPAWNED_BALLOONS.put(livingEntity.getUUID(), virtualBalloon);
         if (old != null && old.getHolder() != null) {
-            old.getHolder().destroy();
+            old.destroy();
         }
 
-        if (balloon.data().animation() != null)
-            virtualBalloon.play(balloon.data().animation());
-
-        virtualBalloon.attach(balloon.data());
+        virtualBalloon.setup(balloon.data());
     }
 
     public static void despawnBalloon(LivingEntity livingEntity) {
         var virtualBalloon = SPAWNED_BALLOONS.remove(livingEntity.getUUID());
         if (virtualBalloon != null) {
-            virtualBalloon.getHolder().destroy();
+            virtualBalloon.destroy();
         }
     }
 

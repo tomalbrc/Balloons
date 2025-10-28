@@ -31,8 +31,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Quaternionfc;
-import org.joml.Vector3fc;
+import org.joml.Matrix4fc;
 
 import java.util.List;
 
@@ -41,7 +40,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
     private float yaw, pitch;
     private final boolean leash;
 
-    protected AnimatedBalloonHolder(Model model, boolean leash) {
+    public AnimatedBalloonHolder(Model model, boolean leash) {
         super(model);
         this.leash = leash;
         this.leashElement = new BalloonRootElement();
@@ -74,7 +73,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
             }
 
             var attributeInstance = new AttributeInstance(Attributes.SCALE, (instance) -> {});
-            attributeInstance.setBaseValue(0.2);
+            attributeInstance.setBaseValue(0.5);
             var attributesPacket = new ClientboundUpdateAttributesPacket(this.leashElement.getEntityId(), List.of(attributeInstance));
             list.add(attributesPacket);
 
@@ -111,8 +110,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
 
     @Override
     protected void applyPose(ServerPlayer player, Pose pose, DisplayWrapper<?> display) {
-        Matrix4f matrix = compose(pose.readOnlyTranslation(), pose.readOnlyLeftRotation(), pose.readOnlyScale(), pose.readOnlyRightRotation());
-
+        Matrix4fc matrix = pose.matrix();
         Matrix4f m = new Matrix4f().rotateLocalX((float) Math.toRadians(-pitch)).rotateLocalY((float) Math.toRadians(-yaw)).mul(matrix);
         m.translateLocal(0, -0.1f, 0);
         display.element().setTransformation(null, m);
@@ -135,27 +133,6 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
         );
     }
 
-    private static Matrix4f compose(@Nullable Vector3fc vector3f, @Nullable Quaternionfc quaternionf, @Nullable Vector3fc vector3f2, @Nullable Quaternionfc quaternionf2) {
-        Matrix4f matrix4f = new Matrix4f();
-        if (vector3f != null) {
-            matrix4f.translation(vector3f);
-        }
-
-        if (quaternionf != null) {
-            matrix4f.rotate(quaternionf);
-        }
-
-        if (vector3f2 != null) {
-            matrix4f.scale(vector3f2);
-        }
-
-        if (quaternionf2 != null) {
-            matrix4f.rotate(quaternionf2);
-        }
-
-        return matrix4f;
-    }
-
     private static class BalloonRootElement extends GenericEntityElement {
         public BalloonRootElement() {
             super();
@@ -167,7 +144,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
 
         @Override
         protected EntityType<? extends Entity> getEntityType() {
-            return EntityType.TROPICAL_FISH;
+            return EntityType.SILVERFISH;
         }
 
 
