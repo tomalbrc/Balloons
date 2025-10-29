@@ -27,7 +27,7 @@ public class SegmentHolder {
 
         for (FabrikSegment segment : segments) {
             if (segment == segments.getLast()) {
-                var animatedHolder = new AnimatedBalloonHolder(Models.getModel(config.model()), config.showLeash());
+                var animatedHolder = new AnimatedBalloonHolder(Models.getModel(config.model()), config.showLeash(), config.glint());
                 PlayerAttachment.ofTicking(animatedHolder, owner);
                 segment.holder = animatedHolder;
 
@@ -35,7 +35,7 @@ public class SegmentHolder {
                     animatedHolder.getAnimator().playAnimation(config.animation());
                 }
             } else {
-                var holder = new AnimatedBalloonHolder(Models.getModel(segment.segmentData.model()), false);
+                var holder = new AnimatedBalloonHolder(Models.getModel(segment.segmentData.model()), false, config.glint());
                 PlayerAttachment.ofTicking(holder, owner);
                 segment.holder = holder;
                 if (segment.segmentData.animation() != null) {

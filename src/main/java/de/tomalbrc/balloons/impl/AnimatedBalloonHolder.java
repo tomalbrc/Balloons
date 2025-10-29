@@ -2,6 +2,7 @@ package de.tomalbrc.balloons.impl;
 
 import de.tomalbrc.balloons.gui.SelectionGui;
 import de.tomalbrc.balloons.util.ClientboundSetEntityLinkPacketExt;
+import de.tomalbrc.bil.core.element.PerPlayerItemDisplayElement;
 import de.tomalbrc.bil.core.holder.base.AbstractAnimationHolder;
 import de.tomalbrc.bil.core.holder.wrapper.Bone;
 import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
@@ -14,6 +15,7 @@ import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -27,8 +29,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -39,10 +43,12 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
     private final GenericEntityElement leashElement;
     private float yaw, pitch;
     private final boolean leash;
+    private final boolean glint;
 
-    public AnimatedBalloonHolder(Model model, boolean leash) {
+    public AnimatedBalloonHolder(Model model, boolean leash, boolean glint) {
         super(model);
         this.leash = leash;
+        this.glint = glint;
         this.leashElement = new BalloonRootElement();
         this.leashElement.setInteractionHandler(new VirtualElement.InteractionHandler() {
             @Override
@@ -52,6 +58,12 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
             }
         });
         this.addElement(this.leashElement);
+    }
+
+    @Override
+    protected @NotNull PerPlayerItemDisplayElement createItemDisplayElement(ItemStack item) {
+        if (glint) item.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+        return super.createItemDisplayElement(item);
     }
 
     @Override

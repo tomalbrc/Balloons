@@ -51,16 +51,8 @@ dependencies {
     modImplementation include('me.lucko:fabric-permissions-api:0.4.1')
     compileOnly 'net.luckperms:api:5.4'
 
+    modImplementation ("de.tomalbrc:db-bundle:1.0.0")
 
-    implementation include(platform("org.mongodb:mongodb-driver-bom:5.6.1"))
-    implementation include("org.mongodb:mongodb-driver-sync")
-    implementation include("org.mongodb:mongodb-driver-core")
-    implementation include("org.mongodb:bson")
-    implementation include("org.mongodb:bson-kotlin")
-    implementation include("com.zaxxer:HikariCP:5.1.0")
-    implementation include("org.mariadb.jdbc:mariadb-java-client:3.5.6")
-    implementation include("org.postgresql:postgresql:42.7.8")
-    implementation include("org.xerial:sqlite-jdbc:3.50.3.0")
 }
 
 processResources {
