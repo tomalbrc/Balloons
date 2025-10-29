@@ -23,7 +23,7 @@ public class VirtualBalloon {
 
     public void setup(BalloonProperties config) {
         if (config.segments().isEmpty()) {
-            this.animatedHolder = new AnimatedBalloonHolder(Models.getModel(config.model()), config.showLeash());
+            this.animatedHolder = new AnimatedBalloonHolder(Models.getModel(config.model()), config.showLeash(), config.glint());
             PlayerAttachment.ofTicking(this.getHolder(), this.owner);
             if (config.animation() != null) this.animatedHolder.getAnimator().playAnimation(config.animation());
         } else {
