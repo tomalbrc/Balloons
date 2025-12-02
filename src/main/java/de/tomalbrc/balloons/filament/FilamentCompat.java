@@ -21,19 +21,13 @@ public class FilamentCompat {
     }
 
     public static void init() {
-        FilamentRegistrationEvents.ITEM.register((itemData, item) -> {
-            registerBalloon(itemData.id(), item);
-        });
-        FilamentRegistrationEvents.BLOCK.register((itemData, item, block) -> {
-            registerBalloon(itemData.id(), item);
-        });
-        FilamentRegistrationEvents.DECORATION.register((itemData, item, block) -> {
-            registerBalloon(itemData.id(), item);
-        });
+        FilamentRegistrationEvents.ITEM.register((itemData, item) -> registerBalloon(itemData.id(), item));
+        FilamentRegistrationEvents.BLOCK.register((itemData, item, block) -> registerBalloon(itemData.id(), item));
+        FilamentRegistrationEvents.DECORATION.register((itemData, item, block) -> registerBalloon(itemData.id(), item));
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
             for (Map.Entry<ResourceLocation, ConfiguredBalloon> entry : Balloons.all().entrySet()) {
-                if (entry.getValue().item() == null)
+                if (entry.getValue().itemStack() == null)
                     entry.getValue().setItem(BuiltInRegistries.ITEM.getValue(entry.getKey()).getDefaultInstance());
             }
         });

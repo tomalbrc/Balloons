@@ -1,5 +1,6 @@
 package de.tomalbrc.balloons;
 
+import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.balloons.command.BalloonCommand;
 import de.tomalbrc.balloons.component.ModComponents;
@@ -9,6 +10,7 @@ import de.tomalbrc.balloons.filament.FilamentCompat;
 import de.tomalbrc.balloons.filament.TrinketCompat;
 import de.tomalbrc.balloons.filament.VanillaCompat;
 import de.tomalbrc.balloons.impl.VirtualBalloon;
+import de.tomalbrc.balloons.storage.CachedBalloonsStorageProxy;
 import de.tomalbrc.balloons.storage.DatabaseConfig;
 import de.tomalbrc.balloons.storage.MongoStorage;
 import de.tomalbrc.balloons.storage.hikari.MariaStorage;
@@ -28,6 +30,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.slf4j.Logger;
 
@@ -53,11 +56,8 @@ public class Balloons implements ModInitializer {
         UNGROUPED.put(id, balloon);
     }
 
-    public static Map<ResourceLocation, ConfiguredBalloon> all() {
-        Map<ResourceLocation, ConfiguredBalloon> map = new Object2ObjectArrayMap<>();
-        map.putAll(GROUPED);
-        map.putAll(UNGROUPED);
-        return map;
+    public static ImmutableMap<ResourceLocation, ConfiguredBalloon> all() {
+        return ImmutableMap.<ResourceLocation, ConfiguredBalloon>builder().putAll(GROUPED).putAll(UNGROUPED).build();
     }
 
     public static StorageUtil.Provider STORAGE = null;
@@ -67,6 +67,7 @@ public class Balloons implements ModInitializer {
     @Override
     public void onInitialize() {
         ModComponents.register();
+        ModEntities.init();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> BalloonCommand.register(dispatcher));
 
@@ -83,12 +84,14 @@ public class Balloons implements ModInitializer {
             TrinketCompat.init();
         }
 
-        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
+        ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             // load configs
             ModConfig.load();
             for (ConfiguredBalloon configBalloon : ModConfig.getInstance().balloons) {
                 addUngrouped(configBalloon.id(), configBalloon);
             }
+            BalloonFiles.load();
+           // Categories.load();
 
             STORAGE = getStorage();
         });
@@ -98,9 +101,7 @@ public class Balloons implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register(Balloons::onJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(Balloons::onDisconnect);
 
-        ServerLivingEntityEvents.AFTER_DEATH.register((livingEntity, damageSource) -> {
-            despawnBalloon(livingEntity);
-        });
+        ServerLivingEntityEvents.AFTER_DEATH.register((livingEntity, damageSource) -> despawnBalloon(livingEntity));
         ServerPlayerEvents.COPY_FROM.register((serverPlayer, serverPlayer1, b) -> {
             despawnBalloon(serverPlayer);
             spawnActive(serverPlayer1);
@@ -113,6 +114,7 @@ public class Balloons implements ModInitializer {
 
     private static void onDisconnect(ServerGamePacketListenerImpl serverGamePacketListener, MinecraftServer server) {
         despawnBalloon(serverGamePacketListener.player);
+        Balloons.getStorage().invalidate(serverGamePacketListener.player.getUUID());
     }
 
     private static void onTick(MinecraftServer server) {
@@ -123,11 +125,14 @@ public class Balloons implements ModInitializer {
         });
     }
 
-    public static void spawnBalloon(LivingEntity livingEntity, ResourceLocation balloonId) {
+    public static void spawnBalloon(Entity livingEntity, ResourceLocation balloonId) {
         if (!(livingEntity.level() instanceof ServerLevel))
             return;
 
         var balloon = Balloons.all().get(balloonId);
+        if (balloon == null)
+            return;
+
         var virtualBalloon = new VirtualBalloon(livingEntity);
 
         var old = SPAWNED_BALLOONS.put(livingEntity.getUUID(), virtualBalloon);
@@ -138,7 +143,7 @@ public class Balloons implements ModInitializer {
         virtualBalloon.setup(balloon.data());
     }
 
-    public static void despawnBalloon(LivingEntity livingEntity) {
+    public static void despawnBalloon(Entity livingEntity) {
         var virtualBalloon = SPAWNED_BALLOONS.remove(livingEntity.getUUID());
         if (virtualBalloon != null) {
             virtualBalloon.destroy();
@@ -168,6 +173,8 @@ public class Balloons implements ModInitializer {
         } else {
             STORAGE = new SqliteStorage(dbConfig);
         }
+
+        STORAGE = new CachedBalloonsStorageProxy(STORAGE);
 
         return STORAGE;
     }

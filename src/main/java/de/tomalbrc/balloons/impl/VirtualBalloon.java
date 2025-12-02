@@ -3,16 +3,17 @@ package de.tomalbrc.balloons.impl;
 import de.tomalbrc.balloons.Models;
 import de.tomalbrc.balloons.component.BalloonProperties;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 
 public class VirtualBalloon {
-    private final LivingEntity owner;
+    private final Entity owner;
     private BalloonLink follower;
 
     private AnimatedBalloonHolder animatedHolder;
     private SegmentHolder fabrik;
 
-    public VirtualBalloon(LivingEntity owner) {
+    public VirtualBalloon(Entity owner) {
         super();
         this.owner = owner;
     }
@@ -23,7 +24,7 @@ public class VirtualBalloon {
 
     public void setup(BalloonProperties config) {
         if (config.segments().isEmpty()) {
-            this.animatedHolder = new AnimatedBalloonHolder(Models.getModel(config.model()), config.showLeash(), config.glint());
+            this.animatedHolder = new AnimatedBalloonHolder(owner, Models.getModel(config.model()), config.showLeash(), config.glint());
             PlayerAttachment.ofTicking(this.getHolder(), this.owner);
             if (config.animation() != null) this.animatedHolder.getAnimator().playAnimation(config.animation());
         } else {
@@ -32,7 +33,7 @@ public class VirtualBalloon {
         }
 
         this.follower = new BalloonLink(
-                this.owner.position().add(config.offset()),
+                this.owner.position().add(new Vec3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).scale(3.5)),
                 config.followSpeed(),
                 config.drag(),
                 config.bobFrequency(),

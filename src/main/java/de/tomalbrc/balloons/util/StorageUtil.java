@@ -60,5 +60,12 @@ public class StorageUtil {
         List<ResourceLocation> list(UUID player);
 
         default void close() {}
+        default void invalidate(UUID player) {}
+
+        boolean addFav(UUID player, ResourceLocation id);
+
+        boolean removeFav(UUID player, ResourceLocation id);
+
+        List<ResourceLocation> listFavs(UUID player);
     }
 }

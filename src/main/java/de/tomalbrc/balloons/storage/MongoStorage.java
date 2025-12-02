@@ -11,6 +11,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import de.tomalbrc.balloons.Balloons;
 import de.tomalbrc.balloons.util.StorageUtil;
@@ -61,6 +62,51 @@ public class MongoStorage implements StorageUtil.Provider {
         client.close();
     }
 
+    @Override
+    public boolean addFav(UUID player, ResourceLocation id) {
+        if (id == null) return false;
+        String idStr = id.toString();
+
+        UpdateResult res = collection.updateOne(
+                eq("_id", player),
+                Updates.addToSet("favourites", idStr),
+                new UpdateOptions().upsert(true)
+        );
+
+        return res.wasAcknowledged() && (res.getModifiedCount() > 0 || res.getUpsertedId() != null);
+    }
+
+    @Override
+    public boolean removeFav(UUID player, ResourceLocation id) {
+        if (id == null) return false;
+        String idStr = id.toString();
+
+        UpdateResult res = collection.updateOne(
+                eq("_id", player),
+                Updates.pull("favourites", idStr)
+        );
+
+        return res.wasAcknowledged() && res.getModifiedCount() > 0;
+    }
+
+    @Override
+    public List<ResourceLocation> listFavs(UUID player) {
+        Document doc = collection.find(eq("_id", player))
+                .projection(Projections.include("favourites"))
+                .first();
+        if (doc == null || !doc.containsKey("favourites")) return Collections.emptyList();
+
+        List<String> raw = doc.getList("favourites", String.class);
+        if (raw == null) return Collections.emptyList();
+
+        List<ResourceLocation> out = new ArrayList<>(raw.size());
+        for (String s : raw) {
+            ResourceLocation rl = ResourceLocation.tryParse(s);
+            if (rl != null) out.add(rl);
+        }
+        return out;
+    }
+
     private String loadActiveStringFromDb(String uuidStr) {
         Document doc = collection.find(eq("_id", UUID.fromString(uuidStr)))
                 .projection(Projections.include("active"))
@@ -74,7 +120,7 @@ public class MongoStorage implements StorageUtil.Provider {
     public boolean setActive(UUID playerUUID, ResourceLocation id) {
         String idStr = id == null ? null : id.toString();
         UpdateResult res = collection.updateOne(eq("_id", playerUUID),
-                new Document("$set", new Document("active", idStr)),
+                Updates.set("active", idStr),
                 new UpdateOptions().upsert(true));
         activeCache.invalidate(playerUUID.toString());
         return res.wasAcknowledged() && (res.getModifiedCount() > 0 || res.getUpsertedId() != null);
@@ -98,7 +144,7 @@ public class MongoStorage implements StorageUtil.Provider {
             success = delRes.getDeletedCount() > 0;
         } else {
             var updRes = collection.updateOne(eq("_id", playerUUID),
-                    new Document("$unset", new Document("active", "")));
+                    Updates.unset("active"));
             activeCache.invalidate(playerUUID.toString());
             success = updRes.wasAcknowledged() && updRes.getModifiedCount() > 0;
         }
@@ -123,18 +169,6 @@ public class MongoStorage implements StorageUtil.Provider {
         }
     }
 
-    public void setAvailable(UUID playerUUID, List<ResourceLocation> ids) {
-        List<String> strings = new ArrayList<>();
-        if (ids != null) {
-            for (ResourceLocation rl : ids) {
-                if (rl != null) strings.add(rl.toString());
-            }
-        }
-        collection.updateOne(eq("_id", playerUUID),
-                new Document("$set", new Document("available", strings)),
-                new UpdateOptions().upsert(true));
-    }
-
     @Override
     public List<ResourceLocation> list(UUID playerUUID) {
         Document doc = collection.find(eq("_id", playerUUID))
@@ -157,20 +191,9 @@ public class MongoStorage implements StorageUtil.Provider {
     public boolean add(UUID playerUUID, ResourceLocation id) {
         if (id == null) return false;
 
-        Document doc = collection.find(eq("_id", playerUUID)).first();
-        List<String> available;
-        if (doc != null && doc.containsKey("available")) {
-            available = doc.getList("available", String.class);
-        } else {
-            available = new ArrayList<>();
-        }
-
         String idStr = id.toString();
-        if (available.contains(idStr)) return false;
-        available.add(idStr);
-
         UpdateResult res = collection.updateOne(eq("_id", playerUUID),
-                new Document("$set", new Document("available", available)),
+                Updates.addToSet("available", idStr),
                 new UpdateOptions().upsert(true));
         return res.wasAcknowledged() && (res.getModifiedCount() > 0 || res.getUpsertedId() != null);
     }
@@ -179,14 +202,9 @@ public class MongoStorage implements StorageUtil.Provider {
     public boolean remove(UUID playerUUID, ResourceLocation id) {
         if (id == null) return false;
 
-        Document doc = collection.find(eq("_id", playerUUID)).first();
-        if (doc == null || !doc.containsKey("available")) return false;
-
-        List<String> available = new ArrayList<>(doc.getList("available", String.class));
-        if (!available.remove(id.toString())) return false;
-
+        String idStr = id.toString();
         UpdateResult res = collection.updateOne(eq("_id", playerUUID),
-                new Document("$set", new Document("available", available)));
+                Updates.pull("available", idStr));
         return res.wasAcknowledged() && res.getModifiedCount() > 0;
     }
 }

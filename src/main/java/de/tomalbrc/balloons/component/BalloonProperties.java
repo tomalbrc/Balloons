@@ -26,7 +26,7 @@ public record BalloonProperties(
             Codec.STRING.optionalFieldOf("title", "Balloon").forGetter(BalloonProperties::title),
             Codec.STRING.fieldOf("model").forGetter(BalloonProperties::model),
             Codec.STRING.optionalFieldOf("animation", "idle").forGetter(BalloonProperties::animation),
-            Codec.BOOL.optionalFieldOf("glint", true).forGetter(BalloonProperties::glint),
+            Codec.BOOL.optionalFieldOf("glint", false).forGetter(BalloonProperties::glint),
             Codec.BOOL.optionalFieldOf("show_leash", true).forGetter(BalloonProperties::showLeash),
             Codec.BOOL.optionalFieldOf("tilt", true).forGetter(BalloonProperties::tilt),
             Codec.BOOL.optionalFieldOf("rotate", true).forGetter(BalloonProperties::rotate),

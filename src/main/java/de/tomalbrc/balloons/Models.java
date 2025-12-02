@@ -34,7 +34,7 @@ public class Models {
     }
 
     public static void load() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve("balloons");
+        Path path = FabricLoader.getInstance().getConfigDir().resolve("balloons/models");
 
         try {
             Files.createDirectories(path);

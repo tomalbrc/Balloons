@@ -1,9 +1,10 @@
 package de.tomalbrc.balloons.config;
 
+import com.google.common.collect.ImmutableMap;
 import de.tomalbrc.balloons.component.BalloonProperties;
 import de.tomalbrc.balloons.util.TextUtil;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -12,6 +13,7 @@ import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 public class ConfiguredBalloon {
     public static Style EMPTY = Style.EMPTY.withColor(ChatFormatting.WHITE).withUnderlined(false).withItalic(false).withObfuscated(false).withStrikethrough(false);
@@ -40,8 +42,19 @@ public class ConfiguredBalloon {
         return data;
     }
 
-    public ItemStack item() {
-        return item == null ? null : item.copy();
+    public ItemStack itemStack() {
+        ItemStack itemStack = item;
+
+        if (item == null)
+            itemStack = Items.ROTTEN_FLESH.getDefaultInstance();
+
+        if (title != null)
+            itemStack.set(DataComponents.ITEM_NAME, Component.empty().append(Component.empty().withStyle(EMPTY).append(TextUtil.parse(title))));
+
+        if (glint)
+            itemStack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+
+        return itemStack;
     }
 
     public ResourceLocation id() {
@@ -60,15 +73,10 @@ public class ConfiguredBalloon {
         return permissionLevel;
     }
 
-    public GuiElementBuilder guiElementBuilder() {
-        GuiElementBuilder builder = GuiElementBuilder.from(item == null ? Items.PAPER.getDefaultInstance() : item);
-        builder.setName(title == null ? Component.literal(id.toString()) : TextUtil.parse(title));
-        if (lore != null) {
-            for (String string : lore) {
-                builder.addLoreLine(Component.empty().withStyle(EMPTY).append(TextUtil.parse(string)));
-            }
-        }
-        builder.glow(glint);
-        return builder;
+    public Map<String, String> placeholder() {
+        return ImmutableMap.of(
+                "<title>", title,
+                "<id>", id.toString()
+        );
     }
 }

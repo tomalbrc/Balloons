@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class MariaStorage extends AbstractHikariStorage {
-
     public MariaStorage(DatabaseConfig cfg) {
         super(StorageUtil.Type.MARIADB, cfg);
 
@@ -29,6 +28,13 @@ public class MariaStorage extends AbstractHikariStorage {
                     "balloon VARCHAR(255) NOT NULL," +
                     "PRIMARY KEY (uuid, balloon)" +
                     ") ENGINE=InnoDB");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + Balloons.MODID + "_balloons_favourites (" +
+                    "uuid VARCHAR(36) NOT NULL," +
+                    "balloon VARCHAR(255) NOT NULL," +
+                    "PRIMARY KEY (uuid, balloon)" +
+                    ") ENGINE=InnoDB");
+
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create balloons tables", e);
         }
@@ -76,6 +82,7 @@ public class MariaStorage extends AbstractHikariStorage {
         return null;
     }
 
+    @Override
     public boolean add(UUID playerUUID, ResourceLocation id) {
         if (id == null) return false;
 
@@ -90,6 +97,7 @@ public class MariaStorage extends AbstractHikariStorage {
         }
     }
 
+    @Override
     public boolean remove(UUID playerUUID, ResourceLocation id) {
         if (id == null) return false;
 
@@ -104,11 +112,59 @@ public class MariaStorage extends AbstractHikariStorage {
         }
     }
 
+    @Override
     public List<ResourceLocation> list(UUID playerUUID) {
         String query = "SELECT balloon FROM " + Balloons.MODID + "_balloons_items WHERE uuid = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<ResourceLocation> result = new ArrayList<>();
+                while (rs.next()) {
+                    String balloonStr = rs.getString("balloon");
+                    if (balloonStr != null) result.add(ResourceLocation.parse(balloonStr));
+                }
+                return result;
+            }
+        } catch (SQLException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public boolean addFav(UUID player, ResourceLocation id) {
+        if (id == null) return false;
+        String query = "INSERT IGNORE INTO " + Balloons.MODID + "_balloons_favourites (uuid, balloon) VALUES (?, ?)";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, player.toString());
+            stmt.setString(2, id.toString());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean removeFav(UUID player, ResourceLocation id) {
+        if (id == null) return false;
+        String query = "DELETE FROM " + Balloons.MODID + "_balloons_favourites WHERE uuid = ? AND balloon = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, player.toString());
+            stmt.setString(2, id.toString());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException ignored) {}
+
+        return false;
+    }
+
+    @Override
+    public List<ResourceLocation> listFavs(UUID player) {
+        String query = "SELECT balloon FROM " + Balloons.MODID + "_balloons_favourites WHERE uuid = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, player.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 List<ResourceLocation> result = new ArrayList<>();
                 while (rs.next()) {

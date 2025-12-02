@@ -29,6 +29,12 @@ public class PostgresStorage extends AbstractHikariStorage {
                     "balloon TEXT NOT NULL," +
                     "PRIMARY KEY (uuid, balloon)" +
                     ")");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + Balloons.MODID + "_balloons_favourites (" +
+                    "uuid TEXT NOT NULL," +
+                    "balloon TEXT NOT NULL," +
+                    "PRIMARY KEY (uuid, balloon)" +
+                    ")");
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create balloons tables", e);
         }
@@ -105,6 +111,51 @@ public class PostgresStorage extends AbstractHikariStorage {
         String query = "SELECT balloon FROM " + Balloons.MODID + "_available WHERE uuid = ?";
         try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<ResourceLocation> result = new ArrayList<>();
+                while (rs.next()) {
+                    String balloonStr = rs.getString("balloon");
+                    if (balloonStr != null) result.add(ResourceLocation.parse(balloonStr));
+                }
+                return result;
+            }
+        } catch (SQLException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    public boolean addFav(UUID player, ResourceLocation id) {
+        if (id == null) return false;
+        String query = "INSERT INTO " + Balloons.MODID + "_balloons_favourites (uuid, balloon) " +
+                "VALUES (?, ?) ON CONFLICT (uuid, balloon) DO NOTHING";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, player.toString());
+            stmt.setString(2, id.toString());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public boolean removeFav(UUID player, ResourceLocation id) {
+        if (id == null) return false;
+        String query = "DELETE FROM " + Balloons.MODID + "_balloons_favourites WHERE uuid = ? AND balloon = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, player.toString());
+            stmt.setString(2, id.toString());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException ignored) {}
+
+        return false;
+    }
+
+    public List<ResourceLocation> listFavs(UUID player) {
+        String query = "SELECT balloon FROM " + Balloons.MODID + "_balloons_favourites WHERE uuid = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, player.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 List<ResourceLocation> result = new ArrayList<>();
                 while (rs.next()) {

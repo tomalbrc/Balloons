@@ -21,12 +21,12 @@ public class SqliteStorage extends AbstractHikariStorage {
     public SqliteStorage(DatabaseConfig cfg) {
         super(StorageUtil.Type.SQLITE, cfg);
 
-        try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
+        try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS " + Balloons.MODID + "_balloons (" +
                     "uuid TEXT PRIMARY KEY," +
                     "active TEXT," +
-                    "available TEXT" + // JSON string
+                    "available TEXT," +   // JSON string
+                    "favourites TEXT" +   // JSON string for favourites
                     ")");
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create balloons table", e);
@@ -38,8 +38,7 @@ public class SqliteStorage extends AbstractHikariStorage {
         String query = "INSERT INTO " + Balloons.MODID + "_balloons (uuid, active) " +
                 "VALUES (?, ?) " +
                 "ON CONFLICT(uuid) DO UPDATE SET active=excluded.active";
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             stmt.setString(2, id != null ? id.toString() : null);
             return stmt.executeUpdate() > 0;
@@ -51,8 +50,7 @@ public class SqliteStorage extends AbstractHikariStorage {
     @Override
     public boolean removeActive(UUID playerUUID) {
         String query = "UPDATE " + Balloons.MODID + "_balloons SET active = NULL WHERE uuid = ?";
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -63,8 +61,7 @@ public class SqliteStorage extends AbstractHikariStorage {
     @Override
     public ResourceLocation getActive(UUID playerUUID) {
         String query = "SELECT active FROM " + Balloons.MODID + "_balloons WHERE uuid = ?";
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -72,24 +69,24 @@ public class SqliteStorage extends AbstractHikariStorage {
                     return activeStr != null ? ResourceLocation.parse(activeStr) : null;
                 }
             }
-        } catch (SQLException e) {}
+        } catch (SQLException ignored) {}
         return null;
     }
 
     private List<String> getAvailableStrings(UUID playerUUID) {
         String query = "SELECT available FROM " + Balloons.MODID + "_balloons WHERE uuid = ?";
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     String json = rs.getString("available");
                     if (json != null && !json.isEmpty()) {
-                        return gson.fromJson(json, listType);
+                        List<String> parsed = gson.fromJson(json, listType);
+                        return parsed != null ? parsed : new ArrayList<>();
                     }
                 }
             }
-        } catch (SQLException e) {}
+        } catch (SQLException ignored) {}
         return new ArrayList<>();
     }
 
@@ -98,12 +95,40 @@ public class SqliteStorage extends AbstractHikariStorage {
         String query = "INSERT INTO " + Balloons.MODID + "_balloons (uuid, available) " +
                 "VALUES (?, ?) " +
                 "ON CONFLICT(uuid) DO UPDATE SET available=excluded.available";
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             stmt.setString(2, json);
             stmt.executeUpdate();
-        } catch (SQLException e) {}
+        } catch (SQLException ignored) {}
+    }
+
+    private List<String> getFavStrings(UUID playerUUID) {
+        String query = "SELECT favourites FROM " + Balloons.MODID + "_balloons WHERE uuid = ?";
+        try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, playerUUID.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String json = rs.getString("favourites");
+                    if (json != null && !json.isEmpty()) {
+                        List<String> parsed = gson.fromJson(json, listType);
+                        return parsed != null ? parsed : new ArrayList<>();
+                    }
+                }
+            }
+        } catch (SQLException ignored) {}
+        return new ArrayList<>();
+    }
+
+    private void setFavStrings(UUID playerUUID, List<String> favs) {
+        String json = gson.toJson(favs);
+        String query = "INSERT INTO " + Balloons.MODID + "_balloons (uuid, favourites) " +
+                "VALUES (?, ?) " +
+                "ON CONFLICT(uuid) DO UPDATE SET favourites=excluded.favourites";
+        try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, playerUUID.toString());
+            stmt.setString(2, json);
+            stmt.executeUpdate();
+        } catch (SQLException ignored) {}
     }
 
     public List<ResourceLocation> list(UUID playerUUID) {
@@ -131,6 +156,43 @@ public class SqliteStorage extends AbstractHikariStorage {
         List<String> current = getAvailableStrings(playerUUID);
         if (current.remove(id.toString())) {
             setAvailableStrings(playerUUID, current);
+
+            // also remove from favourites if present
+            List<String> favs = getFavStrings(playerUUID);
+            if (favs.remove(id.toString())) {
+                setFavStrings(playerUUID, favs);
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    public List<ResourceLocation> listFavs(UUID playerUUID) {
+        List<String> favs = getFavStrings(playerUUID);
+        List<ResourceLocation> result = new ArrayList<>();
+        for (String s : favs) {
+            result.add(ResourceLocation.parse(s));
+        }
+        return result;
+    }
+
+    public boolean addFav(UUID playerUUID, ResourceLocation id) {
+        if (id == null) return false;
+        List<String> favs = getFavStrings(playerUUID);
+        if (!favs.contains(id.toString())) {
+            favs.add(id.toString());
+            setFavStrings(playerUUID, favs);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeFav(UUID playerUUID, ResourceLocation id) {
+        if (id == null) return false;
+        List<String> favs = getFavStrings(playerUUID);
+        if (favs.remove(id.toString())) {
+            setFavStrings(playerUUID, favs);
             return true;
         }
         return false;

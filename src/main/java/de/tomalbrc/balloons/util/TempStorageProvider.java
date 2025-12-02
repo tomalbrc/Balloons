@@ -39,4 +39,19 @@ public class TempStorageProvider implements StorageUtil.Provider {
     public boolean removeActive(UUID uuid) {
         return this.map.remove(uuid) != null;
     }
+
+    @Override
+    public boolean addFav(UUID player, ResourceLocation id) {
+        return false;
+    }
+
+    @Override
+    public boolean removeFav(UUID player, ResourceLocation id) {
+        return false;
+    }
+
+    @Override
+    public List<ResourceLocation> listFavs(UUID player) {
+        return List.of();
+    }
 }
