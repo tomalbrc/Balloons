@@ -21,6 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -84,7 +85,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
             var list = ObjectArrayList.<Packet<? super ClientGamePacketListener>>of(ridePacket);
 
             if (this.leash) {
-                var packet = VirtualEntityUtils.createEntityAttachPacket(this.owner.getId(), this.leashElement.getEntityId());
+                var packet = new ClientboundSetEntityLinkPacket(this.owner, this.owner);
                 ((ClientboundSetEntityLinkPacketExt)packet).balloons$setCustomId(this.leashElement.getEntityId());
                 list.add(packet);
             }
