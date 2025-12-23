@@ -5,7 +5,7 @@ import de.tomalbrc.balloons.component.ModComponents;
 import de.tomalbrc.balloons.util.TempStorageProvider;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public class VanillaCompat {
@@ -30,9 +30,9 @@ public class VanillaCompat {
         return itemStack.has(ModComponents.BALLOON);
     }
 
-    public static ResourceLocation getBalloonId(ItemStack itemStack) {
+    public static Identifier getBalloonId(ItemStack itemStack) {
         if (isValidBalloonItem(itemStack)) {
-            return itemStack.getItem().builtInRegistryHolder().key().location();
+            return itemStack.getItem().builtInRegistryHolder().key().identifier();
         }
 
         return null;

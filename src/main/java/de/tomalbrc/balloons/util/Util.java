@@ -2,6 +2,7 @@ package de.tomalbrc.balloons.util;
 
 import de.tomalbrc.balloons.BalloonFenceLeashKnot;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -23,7 +24,7 @@ public class Util {
     }
 
     public static void clickSound(ServerPlayer player) {
-        player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.MASTER, 0.5f, 1F);
+        player.connection.send(new ClientboundSoundPacket(SoundEvents.UI_BUTTON_CLICK, SoundSource.MASTER, player.getX(), player.getY(), player.getZ(), 0.5f, 0.1f, 0));
     }
 
     public static BalloonFenceLeashKnot createKnot(Level level, BlockPos blockPos) {

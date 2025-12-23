@@ -11,16 +11,16 @@ import de.tomalbrc.balloons.configui.api.GuiTypeRegistry;
 import de.tomalbrc.balloons.configui.impl.selection.EmptyGuiType;
 import de.tomalbrc.balloons.configui.impl.selection.SelectionGui;
 import de.tomalbrc.balloons.util.Util;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
 public class ConfirmationGui extends ConfiguredGui<GuiElementData, ConfiguredBalloon> {
-    final ResourceLocation id;
+    final Identifier id;
 
-    public ConfirmationGui(ServerPlayer player, ResourceLocation id) {
+    public ConfirmationGui(ServerPlayer player, Identifier id) {
         super("balloon_confirm", ModConfig.getInstance().confirmationGui, player, false);
         this.id = id;
     }

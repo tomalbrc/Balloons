@@ -5,7 +5,7 @@ import de.tomalbrc.balloons.component.ModComponents;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
@@ -25,7 +25,7 @@ import xyz.nucleoid.packettweaker.PacketContext;
 public class BalloonFenceLeashKnot extends BlockAttachedEntity implements PolymerEntity {
     private static final String BALLOON_KEY = "BalloonId";
 
-    ResourceLocation balloonId;
+    Identifier balloonId;
 
     public BalloonFenceLeashKnot(EntityType<? extends BlockAttachedEntity> entityType, Level level) {
         super(entityType, level);
@@ -36,7 +36,7 @@ public class BalloonFenceLeashKnot extends BlockAttachedEntity implements Polyme
         this.setPos(blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 
-    public void setBalloonId(ResourceLocation balloonId) {
+    public void setBalloonId(Identifier balloonId) {
         this.balloonId = balloonId;
     }
 
@@ -44,7 +44,7 @@ public class BalloonFenceLeashKnot extends BlockAttachedEntity implements Polyme
     public void readAdditionalSaveData(ValueInput compoundTag) {
         super.readAdditionalSaveData(compoundTag);
         if (balloonId == null) {
-            compoundTag.read(BALLOON_KEY, ResourceLocation.CODEC).ifPresent(x -> {
+            compoundTag.read(BALLOON_KEY, Identifier.CODEC).ifPresent(x -> {
                 balloonId = x;
                 Balloons.spawnBalloon(this, balloonId);
             });

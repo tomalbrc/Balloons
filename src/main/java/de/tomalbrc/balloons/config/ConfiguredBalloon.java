@@ -7,7 +7,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +18,7 @@ import java.util.Map;
 public class ConfiguredBalloon {
     public static Style EMPTY = Style.EMPTY.withColor(ChatFormatting.WHITE).withUnderlined(false).withItalic(false).withObfuscated(false).withStrikethrough(false);
 
-    ResourceLocation id;
+    Identifier id;
     @Nullable ItemStack item;
     BalloonProperties data;
     String title;
@@ -27,7 +27,7 @@ public class ConfiguredBalloon {
     String permission;
     int permissionLevel;
 
-    public ConfiguredBalloon(ResourceLocation id, String title, @Nullable ItemStack item, BalloonProperties data) {
+    public ConfiguredBalloon(Identifier id, String title, @Nullable ItemStack item, BalloonProperties data) {
         this.id = id;
         this.item = item;
         this.data = data;
@@ -57,7 +57,7 @@ public class ConfiguredBalloon {
         return itemStack;
     }
 
-    public ResourceLocation id() {
+    public Identifier id() {
         return id;
     }
 

@@ -3,7 +3,7 @@ package de.tomalbrc.balloons.storage.hikari;
 import de.tomalbrc.balloons.Balloons;
 import de.tomalbrc.balloons.storage.DatabaseConfig;
 import de.tomalbrc.balloons.util.StorageUtil;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class PostgresStorage extends AbstractHikariStorage {
     }
 
     @Override
-    public boolean setActive(UUID playerUUID, ResourceLocation id) {
+    public boolean setActive(UUID playerUUID, Identifier id) {
         String query = "INSERT INTO " + Balloons.MODID + "_balloons (uuid, active) " +
                 "VALUES (?, ?) " +
                 "ON CONFLICT (uuid) DO UPDATE SET active = EXCLUDED.active";
@@ -66,21 +66,21 @@ public class PostgresStorage extends AbstractHikariStorage {
     }
 
     @Override
-    public ResourceLocation getActive(UUID playerUUID) {
+    public Identifier getActive(UUID playerUUID) {
         String query = "SELECT active FROM " + Balloons.MODID + "_balloons WHERE uuid = ?";
         try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     String activeStr = rs.getString("active");
-                    return activeStr != null ? ResourceLocation.parse(activeStr) : null;
+                    return activeStr != null ? Identifier.parse(activeStr) : null;
                 }
             }
         } catch (SQLException ignored) {}
         return null;
     }
 
-    public boolean add(UUID playerUUID, ResourceLocation id) {
+    public boolean add(UUID playerUUID, Identifier id) {
         if (id == null) return false;
 
         String query = "INSERT INTO " + Balloons.MODID + "_available (uuid, balloon) " +
@@ -94,7 +94,7 @@ public class PostgresStorage extends AbstractHikariStorage {
         }
     }
 
-    public boolean remove(UUID playerUUID, ResourceLocation id) {
+    public boolean remove(UUID playerUUID, Identifier id) {
         if (id == null) return false;
 
         String query = "DELETE FROM " + Balloons.MODID + "_available WHERE uuid = ? AND balloon = ?";
@@ -107,15 +107,15 @@ public class PostgresStorage extends AbstractHikariStorage {
         }
     }
 
-    public List<ResourceLocation> list(UUID playerUUID) {
+    public List<Identifier> list(UUID playerUUID) {
         String query = "SELECT balloon FROM " + Balloons.MODID + "_available WHERE uuid = ?";
         try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             try (ResultSet rs = stmt.executeQuery()) {
-                List<ResourceLocation> result = new ArrayList<>();
+                List<Identifier> result = new ArrayList<>();
                 while (rs.next()) {
                     String balloonStr = rs.getString("balloon");
-                    if (balloonStr != null) result.add(ResourceLocation.parse(balloonStr));
+                    if (balloonStr != null) result.add(Identifier.parse(balloonStr));
                 }
                 return result;
             }
@@ -124,7 +124,7 @@ public class PostgresStorage extends AbstractHikariStorage {
         }
     }
 
-    public boolean addFav(UUID player, ResourceLocation id) {
+    public boolean addFav(UUID player, Identifier id) {
         if (id == null) return false;
         String query = "INSERT INTO " + Balloons.MODID + "_balloons_favourites (uuid, balloon) " +
                 "VALUES (?, ?) ON CONFLICT (uuid, balloon) DO NOTHING";
@@ -138,7 +138,7 @@ public class PostgresStorage extends AbstractHikariStorage {
         }
     }
 
-    public boolean removeFav(UUID player, ResourceLocation id) {
+    public boolean removeFav(UUID player, Identifier id) {
         if (id == null) return false;
         String query = "DELETE FROM " + Balloons.MODID + "_balloons_favourites WHERE uuid = ? AND balloon = ?";
         try (Connection conn = dataSource.getConnection();
@@ -151,16 +151,16 @@ public class PostgresStorage extends AbstractHikariStorage {
         return false;
     }
 
-    public List<ResourceLocation> listFavs(UUID player) {
+    public List<Identifier> listFavs(UUID player) {
         String query = "SELECT balloon FROM " + Balloons.MODID + "_balloons_favourites WHERE uuid = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, player.toString());
             try (ResultSet rs = stmt.executeQuery()) {
-                List<ResourceLocation> result = new ArrayList<>();
+                List<Identifier> result = new ArrayList<>();
                 while (rs.next()) {
                     String balloonStr = rs.getString("balloon");
-                    if (balloonStr != null) result.add(ResourceLocation.parse(balloonStr));
+                    if (balloonStr != null) result.add(Identifier.parse(balloonStr));
                 }
                 return result;
             }

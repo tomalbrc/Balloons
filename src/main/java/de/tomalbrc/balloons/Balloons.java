@@ -26,7 +26,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -45,19 +45,19 @@ public class Balloons implements ModInitializer {
     // map of player-uuid => map of spawned ballons
     public static Map<UUID, VirtualBalloon> SPAWNED_BALLOONS = new ConcurrentHashMap<>();
 
-    public static Map<ResourceLocation, ConfiguredBalloon> GROUPED = new Object2ObjectArrayMap<>();
-    public static Map<ResourceLocation, ConfiguredBalloon> UNGROUPED = new Object2ObjectArrayMap<>();
+    public static Map<Identifier, ConfiguredBalloon> GROUPED = new Object2ObjectArrayMap<>();
+    public static Map<Identifier, ConfiguredBalloon> UNGROUPED = new Object2ObjectArrayMap<>();
 
-    public static void addGrouped(ResourceLocation id, ConfiguredBalloon balloon) {
+    public static void addGrouped(Identifier id, ConfiguredBalloon balloon) {
         GROUPED.put(id, balloon);
     }
 
-    public static void addUngrouped(ResourceLocation id, ConfiguredBalloon balloon) {
+    public static void addUngrouped(Identifier id, ConfiguredBalloon balloon) {
         UNGROUPED.put(id, balloon);
     }
 
-    public static ImmutableMap<ResourceLocation, ConfiguredBalloon> all() {
-        return ImmutableMap.<ResourceLocation, ConfiguredBalloon>builder().putAll(GROUPED).putAll(UNGROUPED).build();
+    public static ImmutableMap<Identifier, ConfiguredBalloon> all() {
+        return ImmutableMap.<Identifier, ConfiguredBalloon>builder().putAll(GROUPED).putAll(UNGROUPED).build();
     }
 
     public static StorageUtil.Provider STORAGE = null;
@@ -125,7 +125,7 @@ public class Balloons implements ModInitializer {
         });
     }
 
-    public static void spawnBalloon(Entity livingEntity, ResourceLocation balloonId) {
+    public static void spawnBalloon(Entity livingEntity, Identifier balloonId) {
         if (!(livingEntity.level() instanceof ServerLevel))
             return;
 

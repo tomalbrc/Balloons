@@ -10,7 +10,7 @@ import de.tomalbrc.filament.registry.ModelRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 import java.util.Map;
@@ -26,14 +26,14 @@ public class FilamentCompat {
         FilamentRegistrationEvents.DECORATION.register((itemData, item, block) -> registerBalloon(itemData.id(), item));
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
-            for (Map.Entry<ResourceLocation, ConfiguredBalloon> entry : Balloons.all().entrySet()) {
+            for (Map.Entry<Identifier, ConfiguredBalloon> entry : Balloons.all().entrySet()) {
                 if (entry.getValue().itemStack() == null)
                     entry.getValue().setItem(BuiltInRegistries.ITEM.getValue(entry.getKey()).getDefaultInstance());
             }
         });
     }
 
-    private static void registerBalloon(ResourceLocation id, Item item) {
+    private static void registerBalloon(Identifier id, Item item) {
         if (item.components().has(ModComponents.BALLOON)) {
             BalloonProperties properties = item.components().get(ModComponents.BALLOON);
             assert properties != null;
@@ -43,6 +43,6 @@ public class FilamentCompat {
     }
 
     public static Model getModel(String name) {
-        return ModelRegistry.getModel(ResourceLocation.parse(name));
+        return ModelRegistry.getModel(Identifier.parse(name));
     }
 }

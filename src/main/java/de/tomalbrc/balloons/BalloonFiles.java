@@ -5,7 +5,7 @@ import com.google.gson.stream.JsonReader;
 import de.tomalbrc.balloons.config.ConfiguredBalloon;
 import de.tomalbrc.balloons.config.ModConfig;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -28,7 +28,7 @@ public class BalloonFiles {
                             return;
                         }
 
-                        ResourceLocation id = category.id();
+                        Identifier id = category.id();
                         if (id == null) {
                             Balloons.LOGGER.error("Warning: balloon json in {} has no id; skipping", path);
                             return;

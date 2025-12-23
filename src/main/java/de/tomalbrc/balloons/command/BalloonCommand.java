@@ -12,9 +12,9 @@ import de.tomalbrc.balloons.util.StorageUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
@@ -66,7 +66,7 @@ public class BalloonCommand {
         // /balloons activate <id>
         root = root.then(literal("activate")
                 .requires(requirePerm.apply("balloons.activate"))
-                .then(argument("id", ResourceLocationArgument.id())
+                .then(argument("id", IdentifierArgument.id())
                         .suggests(balloonSuggestions)
                         .executes(BalloonCommand::handleActivate)));
 
@@ -122,7 +122,7 @@ public class BalloonCommand {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
-        var id = ResourceLocationArgument.getId(ctx, "id");
+        var id = IdentifierArgument.getId(ctx, "id");
         boolean success = StorageUtil.setActive(player, id);
         if (success) {
             Balloons.spawnActive(player);
@@ -162,7 +162,7 @@ public class BalloonCommand {
         try {
             ServerPlayer target = EntityArgument.getPlayer(ctx, "player");
             String balloonName = StringArgumentType.getString(ctx, "balloon");
-            var id = ResourceLocation.tryParse(balloonName);
+            var id = Identifier.tryParse(balloonName);
             if (id != null && StorageUtil.add(target.getUUID(), id)) {
                 CompletableFuture.runAsync(() -> {
                     if (StorageUtil.add(target.getUUID(), id)) {
@@ -197,7 +197,7 @@ public class BalloonCommand {
         try {
             ServerPlayer target = EntityArgument.getPlayer(ctx, "player");
             String balloonName = StringArgumentType.getString(ctx, "balloon");
-            var id = ResourceLocation.tryParse(balloonName);
+            var id = Identifier.tryParse(balloonName);
             if (id != null && StorageUtil.remove(target.getUUID(), id)) {
                 ctx.getSource().sendSuccess(() -> Component.literal("Removed balloon " + balloonName + " from " + target.getScoreboardName()), false);
                 return Command.SINGLE_SUCCESS;
@@ -215,11 +215,11 @@ public class BalloonCommand {
         try {
             ServerPlayer target = EntityArgument.getPlayer(ctx, "player");
             CompletableFuture.runAsync(() -> {
-                Collection<ResourceLocation> list = StorageUtil.list(target.getUUID());
+                Collection<Identifier> list = StorageUtil.list(target.getUUID());
                 if (list.isEmpty()) {
                     ctx.getSource().sendFailure(Component.literal("No balloons for player " + target.getScoreboardName()));
                 } else {
-                    for (ResourceLocation s : list) {
+                    for (Identifier s : list) {
                         ctx.getSource().sendSuccess(() -> Component.literal(s.toString()), false);
                     }
                 }
@@ -236,7 +236,7 @@ public class BalloonCommand {
         if (player == null) return 0;
 
         String balloonName = StringArgumentType.getString(ctx, "balloon");
-        var id = ResourceLocation.tryParse(balloonName);
+        var id = Identifier.tryParse(balloonName);
         if (id == null) {
             ctx.getSource().sendFailure(Component.literal("Unknown balloon: " + balloonName));
             return 0;

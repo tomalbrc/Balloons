@@ -7,7 +7,7 @@ import de.tomalbrc.balloons.config.ConfiguredCategory;
 import de.tomalbrc.balloons.config.ModConfig;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 
 import java.io.FileOutputStream;
@@ -65,9 +65,9 @@ public class Categories {
     }
 
     public static void saveExamples() {
-        Map<ResourceLocation, ConfiguredBalloon> balloonMap = Map.of();
+        Map<Identifier, ConfiguredBalloon> balloonMap = Map.of();
 
-        ConfiguredCategory category = new ConfiguredCategory("example_category", "<green>Example Category</green>", Items.KNOWLEDGE_BOOK.builtInRegistryHolder().key().location(), null, null, false, balloonMap);
+        ConfiguredCategory category = new ConfiguredCategory("example_category", "<green>Example Category</green>", Items.KNOWLEDGE_BOOK.builtInRegistryHolder().key().identifier(), null, null, false, balloonMap);
 
         Path dir = FabricLoader.getInstance().getConfigDir().resolve("balloons/categories");
         dir.toFile().mkdirs();

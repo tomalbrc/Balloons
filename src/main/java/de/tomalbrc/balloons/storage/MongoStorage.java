@@ -15,7 +15,7 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import de.tomalbrc.balloons.Balloons;
 import de.tomalbrc.balloons.util.StorageUtil;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +63,7 @@ public class MongoStorage implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean addFav(UUID player, ResourceLocation id) {
+    public boolean addFav(UUID player, Identifier id) {
         if (id == null) return false;
         String idStr = id.toString();
 
@@ -77,7 +77,7 @@ public class MongoStorage implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean removeFav(UUID player, ResourceLocation id) {
+    public boolean removeFav(UUID player, Identifier id) {
         if (id == null) return false;
         String idStr = id.toString();
 
@@ -90,7 +90,7 @@ public class MongoStorage implements StorageUtil.Provider {
     }
 
     @Override
-    public List<ResourceLocation> listFavs(UUID player) {
+    public List<Identifier> listFavs(UUID player) {
         Document doc = collection.find(eq("_id", player))
                 .projection(Projections.include("favourites"))
                 .first();
@@ -99,9 +99,9 @@ public class MongoStorage implements StorageUtil.Provider {
         List<String> raw = doc.getList("favourites", String.class);
         if (raw == null) return Collections.emptyList();
 
-        List<ResourceLocation> out = new ArrayList<>(raw.size());
+        List<Identifier> out = new ArrayList<>(raw.size());
         for (String s : raw) {
-            ResourceLocation rl = ResourceLocation.tryParse(s);
+            Identifier rl = Identifier.tryParse(s);
             if (rl != null) out.add(rl);
         }
         return out;
@@ -117,7 +117,7 @@ public class MongoStorage implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean setActive(UUID playerUUID, ResourceLocation id) {
+    public boolean setActive(UUID playerUUID, Identifier id) {
         String idStr = id == null ? null : id.toString();
         UpdateResult res = collection.updateOne(eq("_id", playerUUID),
                 Updates.set("active", idStr),
@@ -152,12 +152,12 @@ public class MongoStorage implements StorageUtil.Provider {
         return success;
     }
 
-    public ResourceLocation getActive(UUID playerUUID) {
+    public Identifier getActive(UUID playerUUID) {
         String uuidStr = playerUUID.toString();
         try {
             String activeStr = activeCache.get(uuidStr);
             if (activeStr == null || activeStr.isEmpty()) return null;
-            return ResourceLocation.tryParse(activeStr);
+            return Identifier.tryParse(activeStr);
         } catch (ExecutionException ex) {
             Document found = collection.find(eq("_id", playerUUID))
                     .projection(Projections.include("active"))
@@ -165,12 +165,12 @@ public class MongoStorage implements StorageUtil.Provider {
             if (found == null) return null;
             String s = found.getString("active");
             if (s == null || s.isEmpty()) return null;
-            return ResourceLocation.tryParse(s);
+            return Identifier.tryParse(s);
         }
     }
 
     @Override
-    public List<ResourceLocation> list(UUID playerUUID) {
+    public List<Identifier> list(UUID playerUUID) {
         Document doc = collection.find(eq("_id", playerUUID))
                 .projection(Projections.include("available"))
                 .first();
@@ -179,16 +179,16 @@ public class MongoStorage implements StorageUtil.Provider {
         List<String> raw = doc.getList("available", String.class);
         if (raw == null) return Collections.emptyList();
 
-        List<ResourceLocation> out = new ArrayList<>(raw.size());
+        List<Identifier> out = new ArrayList<>(raw.size());
         for (String s : raw) {
-            ResourceLocation rl = ResourceLocation.tryParse(s);
+            Identifier rl = Identifier.tryParse(s);
             if (rl != null) out.add(rl);
         }
         return out;
     }
 
     @Override
-    public boolean add(UUID playerUUID, ResourceLocation id) {
+    public boolean add(UUID playerUUID, Identifier id) {
         if (id == null) return false;
 
         String idStr = id.toString();
@@ -199,7 +199,7 @@ public class MongoStorage implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean remove(UUID playerUUID, ResourceLocation id) {
+    public boolean remove(UUID playerUUID, Identifier id) {
         if (id == null) return false;
 
         String idStr = id.toString();

@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -19,11 +19,11 @@ import java.util.Map;
 public record ConfiguredCategory(
         String id,
         String title,
-        ResourceLocation item,
+        Identifier item,
         List<String> lore,
-        ResourceLocation itemModel,
+        Identifier itemModel,
         boolean glint,
-        Map<ResourceLocation, ConfiguredBalloon> balloons
+        Map<Identifier, ConfiguredBalloon> balloons
 ) {
     public ItemStack itemStack() {
         ItemStack itemStack;
@@ -56,11 +56,11 @@ public record ConfiguredCategory(
     public static class Builder {
         private String id;
         private String title;
-        private ResourceLocation item;
+        private Identifier item;
         private final List<String> lore = new ObjectArrayList<>();
-        private ResourceLocation itemModel;
+        private Identifier itemModel;
         private boolean glint;
-        private final Map<ResourceLocation, ConfiguredBalloon> balloons = new Object2ObjectOpenHashMap<>();
+        private final Map<Identifier, ConfiguredBalloon> balloons = new Object2ObjectOpenHashMap<>();
 
         private Builder() {}
 
@@ -74,12 +74,12 @@ public record ConfiguredCategory(
             return this;
         }
 
-        public Builder setItem(ResourceLocation item) {
+        public Builder setItem(Identifier item) {
             this.item = item;
             return this;
         }
 
-        public Builder setItemModel(ResourceLocation model) {
+        public Builder setItemModel(Identifier model) {
             this.itemModel = model;
             return this;
         }
@@ -89,12 +89,12 @@ public record ConfiguredCategory(
             return this;
         }
 
-        public Builder addBalloon(ResourceLocation id, ConfiguredBalloon balloon) {
+        public Builder addBalloon(Identifier id, ConfiguredBalloon balloon) {
             this.balloons.put(id, balloon);
             return this;
         }
 
-        public Builder addBalloons(Map<ResourceLocation, ConfiguredBalloon> balloons) {
+        public Builder addBalloons(Map<Identifier, ConfiguredBalloon> balloons) {
             this.balloons.putAll(balloons);
             return this;
         }

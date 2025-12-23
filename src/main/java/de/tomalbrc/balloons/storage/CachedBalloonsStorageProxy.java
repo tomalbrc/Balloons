@@ -3,7 +3,7 @@ package de.tomalbrc.balloons.storage;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import de.tomalbrc.balloons.util.StorageUtil;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,9 +13,9 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
 
     private final StorageUtil.Provider delegate;
 
-    private final Cache<String, List<ResourceLocation>> availableCache;
-    private final Cache<String, List<ResourceLocation>> favCache;
-    private final Cache<String, ResourceLocation> activeCache;
+    private final Cache<String, List<Identifier>> availableCache;
+    private final Cache<String, List<Identifier>> favCache;
+    private final Cache<String, Identifier> activeCache;
 
     public CachedBalloonsStorageProxy(StorageUtil.Provider delegate) {
         this.delegate = delegate;
@@ -38,7 +38,7 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean add(UUID playerUUID, ResourceLocation id) {
+    public boolean add(UUID playerUUID, Identifier id) {
         boolean ok = delegate.add(playerUUID, id);
         if (ok) {
             availableCache.invalidate(key(playerUUID));
@@ -47,7 +47,7 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean remove(UUID playerUUID, ResourceLocation id) {
+    public boolean remove(UUID playerUUID, Identifier id) {
         boolean ok = delegate.remove(playerUUID, id);
         if (ok) {
             String k = key(playerUUID);
@@ -68,7 +68,7 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean setActive(UUID playerUUID, ResourceLocation id) {
+    public boolean setActive(UUID playerUUID, Identifier id) {
         boolean ok = delegate.setActive(playerUUID, id);
         if (ok) {
             activeCache.invalidate(key(playerUUID));
@@ -77,12 +77,12 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public ResourceLocation getActive(UUID playerUUID) {
+    public Identifier getActive(UUID playerUUID) {
         String k = key(playerUUID);
-        ResourceLocation cached = activeCache.getIfPresent(k);
+        Identifier cached = activeCache.getIfPresent(k);
         if (cached != null) return cached;
 
-        ResourceLocation fromDelegate = delegate.getActive(playerUUID);
+        Identifier fromDelegate = delegate.getActive(playerUUID);
         if (fromDelegate != null) {
             activeCache.put(k, fromDelegate);
         }
@@ -90,7 +90,7 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public List<ResourceLocation> list(UUID playerUUID) {
+    public List<Identifier> list(UUID playerUUID) {
         String k = key(playerUUID);
         try {
             return availableCache.get(k, () -> delegate.list(playerUUID));
@@ -108,7 +108,7 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean addFav(UUID player, ResourceLocation id) {
+    public boolean addFav(UUID player, Identifier id) {
         boolean ok = delegate.addFav(player, id);
         if (ok) {
             favCache.invalidate(key(player));
@@ -117,7 +117,7 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public boolean removeFav(UUID player, ResourceLocation id) {
+    public boolean removeFav(UUID player, Identifier id) {
         boolean ok = delegate.removeFav(player, id);
         if (ok) {
             favCache.invalidate(key(player));
@@ -126,7 +126,7 @@ public class CachedBalloonsStorageProxy implements StorageUtil.Provider {
     }
 
     @Override
-    public List<ResourceLocation> listFavs(UUID player) {
+    public List<Identifier> listFavs(UUID player) {
         String k = key(player);
         try {
             return favCache.get(k, () -> delegate.listFavs(player));

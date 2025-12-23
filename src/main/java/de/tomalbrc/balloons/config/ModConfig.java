@@ -11,7 +11,7 @@ import de.tomalbrc.balloons.storage.DatabaseConfig;
 import de.tomalbrc.balloons.util.SimpleCodecDeserializer;
 import de.tomalbrc.balloons.util.StorageUtil;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
@@ -32,7 +32,7 @@ public class ModConfig {
     static ModConfig instance;
     public static Gson JSON = new GsonBuilder()
             .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackDeserializer())
-            .registerTypeHierarchyAdapter(ResourceLocation.class, new SimpleCodecDeserializer<>(ResourceLocation.CODEC))
+            .registerTypeHierarchyAdapter(Identifier.class, new SimpleCodecDeserializer<>(Identifier.CODEC))
             .registerTypeHierarchyAdapter(BalloonProperties.class, new SimpleCodecDeserializer<>(BalloonProperties.CODEC))
             .registerTypeHierarchyAdapter(Vec3.class, new SimpleCodecDeserializer<>(Vec3.CODEC))
             .registerTypeHierarchyAdapter(Vector2i.class, new Vector2iDeserializer())

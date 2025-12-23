@@ -25,6 +25,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -140,7 +141,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
                 this.getPos(),
                 Vec2.ZERO,
                 this.getLevel(),
-                0,
+                PermissionSet.ALL_PERMISSIONS,
                 name,
                 Component.literal(name),
                 this.getLevel().getServer(),

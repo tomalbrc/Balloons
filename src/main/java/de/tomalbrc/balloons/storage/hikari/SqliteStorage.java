@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import de.tomalbrc.balloons.Balloons;
 import de.tomalbrc.balloons.storage.DatabaseConfig;
 import de.tomalbrc.balloons.util.StorageUtil;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.lang.reflect.Type;
 import java.sql.*;
@@ -34,7 +34,7 @@ public class SqliteStorage extends AbstractHikariStorage {
     }
 
     @Override
-    public boolean setActive(UUID playerUUID, ResourceLocation id) {
+    public boolean setActive(UUID playerUUID, Identifier id) {
         String query = "INSERT INTO " + Balloons.MODID + "_balloons (uuid, active) " +
                 "VALUES (?, ?) " +
                 "ON CONFLICT(uuid) DO UPDATE SET active=excluded.active";
@@ -59,14 +59,14 @@ public class SqliteStorage extends AbstractHikariStorage {
     }
 
     @Override
-    public ResourceLocation getActive(UUID playerUUID) {
+    public Identifier getActive(UUID playerUUID) {
         String query = "SELECT active FROM " + Balloons.MODID + "_balloons WHERE uuid = ?";
         try (Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerUUID.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     String activeStr = rs.getString("active");
-                    return activeStr != null ? ResourceLocation.parse(activeStr) : null;
+                    return activeStr != null ? Identifier.parse(activeStr) : null;
                 }
             }
         } catch (SQLException ignored) {}
@@ -131,16 +131,16 @@ public class SqliteStorage extends AbstractHikariStorage {
         } catch (SQLException ignored) {}
     }
 
-    public List<ResourceLocation> list(UUID playerUUID) {
+    public List<Identifier> list(UUID playerUUID) {
         List<String> strings = getAvailableStrings(playerUUID);
-        List<ResourceLocation> result = new ArrayList<>();
+        List<Identifier> result = new ArrayList<>();
         for (String s : strings) {
-            result.add(ResourceLocation.parse(s));
+            result.add(Identifier.parse(s));
         }
         return result;
     }
 
-    public boolean add(UUID playerUUID, ResourceLocation id) {
+    public boolean add(UUID playerUUID, Identifier id) {
         if (id == null) return false;
         List<String> current = getAvailableStrings(playerUUID);
         if (!current.contains(id.toString())) {
@@ -151,7 +151,7 @@ public class SqliteStorage extends AbstractHikariStorage {
         return false;
     }
 
-    public boolean remove(UUID playerUUID, ResourceLocation id) {
+    public boolean remove(UUID playerUUID, Identifier id) {
         if (id == null) return false;
         List<String> current = getAvailableStrings(playerUUID);
         if (current.remove(id.toString())) {
@@ -168,16 +168,16 @@ public class SqliteStorage extends AbstractHikariStorage {
         return false;
     }
 
-    public List<ResourceLocation> listFavs(UUID playerUUID) {
+    public List<Identifier> listFavs(UUID playerUUID) {
         List<String> favs = getFavStrings(playerUUID);
-        List<ResourceLocation> result = new ArrayList<>();
+        List<Identifier> result = new ArrayList<>();
         for (String s : favs) {
-            result.add(ResourceLocation.parse(s));
+            result.add(Identifier.parse(s));
         }
         return result;
     }
 
-    public boolean addFav(UUID playerUUID, ResourceLocation id) {
+    public boolean addFav(UUID playerUUID, Identifier id) {
         if (id == null) return false;
         List<String> favs = getFavStrings(playerUUID);
         if (!favs.contains(id.toString())) {
@@ -188,7 +188,7 @@ public class SqliteStorage extends AbstractHikariStorage {
         return false;
     }
 
-    public boolean removeFav(UUID playerUUID, ResourceLocation id) {
+    public boolean removeFav(UUID playerUUID, Identifier id) {
         if (id == null) return false;
         List<String> favs = getFavStrings(playerUUID);
         if (favs.remove(id.toString())) {
