@@ -23,7 +23,7 @@ class ContentListType implements ListGuiElementType<GuiElementData, ConfiguredBa
         ItemStack stack = element.itemStack().copy();
         boolean isActive1 = element.id().equals(StorageUtil.getActive(gui.getPlayer()));
 
-        return data.decorate(new GuiElementBuilder(stack), element.placeholder(), isActive1).setCallback((slot, click, action) -> {
+        return data.decorate(new GuiElementBuilder(stack), element.placeholder(), isActive1).setCallback((slot, click, action, _) -> {
             Util.clickSound(gui.getPlayer());
 
             boolean isActive = element.id().equals(StorageUtil.getActive(gui.getPlayer()));

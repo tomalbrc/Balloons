@@ -3,6 +3,7 @@ package de.tomalbrc.balloons;
 import de.tomalbrc.balloons.component.BalloonToken;
 import de.tomalbrc.balloons.component.ModComponents;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
@@ -12,15 +13,16 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.decoration.BlockAttachedEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import xyz.nucleoid.packettweaker.PacketContext;
+import org.jspecify.annotations.NonNull;
 
 public class BalloonFenceLeashKnot extends BlockAttachedEntity implements PolymerEntity {
     private static final String BALLOON_KEY = "BalloonId";
@@ -41,7 +43,7 @@ public class BalloonFenceLeashKnot extends BlockAttachedEntity implements Polyme
     }
 
     @Override
-    public void readAdditionalSaveData(ValueInput compoundTag) {
+    public void readAdditionalSaveData(@NonNull ValueInput compoundTag) {
         super.readAdditionalSaveData(compoundTag);
         if (balloonId == null) {
             compoundTag.read(BALLOON_KEY, Identifier.CODEC).ifPresent(x -> {
@@ -52,7 +54,7 @@ public class BalloonFenceLeashKnot extends BlockAttachedEntity implements Polyme
     }
 
     @Override
-    public void dropItem(ServerLevel level, @Nullable Entity entity) {
+    public void dropItem(@NonNull ServerLevel level, @Nullable Entity entity) {
         var configuredBalloon = Balloons.all().get(balloonId);
         if (configuredBalloon != null) {
             var item = configuredBalloon.itemStack();
@@ -63,14 +65,14 @@ public class BalloonFenceLeashKnot extends BlockAttachedEntity implements Polyme
     }
 
     @Override
-    public void addAdditionalSaveData(ValueOutput compoundTag) {
+    public void addAdditionalSaveData(@NonNull ValueOutput compoundTag) {
         super.addAdditionalSaveData(compoundTag);
         if (balloonId != null) {
             compoundTag.putString(BALLOON_KEY, balloonId.toString());
         }
     }
 
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData(SynchedEntityData.@NonNull Builder builder) {
     }
 
     protected void recalculateBoundingBox() {
@@ -87,16 +89,16 @@ public class BalloonFenceLeashKnot extends BlockAttachedEntity implements Polyme
 
     @Override
     public EntityType<?> getPolymerEntityType(PacketContext context) {
-        return EntityType.LEASH_KNOT;
+        return EntityTypes.LEASH_KNOT;
     }
 
     @Override
-    public @NotNull InteractionResult interact(Player player, InteractionHand interactionHand) {
+    public @NonNull InteractionResult interact(@NonNull Player player, @NonNull InteractionHand hand, @NonNull Vec3 location) {
         return InteractionResult.PASS;
     }
 
     @Override
-    public void remove(RemovalReason removalReason) {
+    public void remove(@NonNull RemovalReason removalReason) {
         Balloons.despawnBalloon(this);
         super.remove(removalReason);
     }

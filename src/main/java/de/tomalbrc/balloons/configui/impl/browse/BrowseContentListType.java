@@ -17,7 +17,7 @@ class BrowseContentListType implements ListGuiElementType<GuiElementData, Config
     @Override
     public GuiElementBuilder buildEntry(ConfiguredGui<GuiElementData, ConfiguredBalloon> gui, GuiElementData data, ConfiguredBalloon element) {
         ItemStack stack = element.itemStack().copy();
-        return data.decorate(new GuiElementBuilder(stack).setCallback((slot, click, action) -> {
+        return data.decorate(new GuiElementBuilder(stack).setCallback((slot, click, action, _) -> {
 
         }), element.placeholder(), Balloons.getStorage().list(gui.getPlayer().getUUID()).contains(element.id()));
     }

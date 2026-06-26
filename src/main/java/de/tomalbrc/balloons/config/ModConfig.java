@@ -114,8 +114,8 @@ public class ModConfig {
             " C     A "
     ), Map.of(
             ' ', new GuiElementData("empty", null, Items.AIR.getDefaultInstance(), List.of(), List.of(), false),
-            'A', new GuiElementData("confirm", "Confirm", Items.LIME_CONCRETE.getDefaultInstance(), List.of(), List.of(), false),
-            'C', new GuiElementData("cancel", "Cancel", Items.RED_CONCRETE.getDefaultInstance(), List.of(), List.of(), false)
+            'A', new GuiElementData("confirm", "Confirm", Items.CONCRETE.lime().getDefaultInstance(), List.of(), List.of(), false),
+            'C', new GuiElementData("cancel", "Cancel", Items.CONCRETE.red().getDefaultInstance(), List.of(), List.of(), false)
     ), false);
 
     public StorageUtil.Type storageType = StorageUtil.Type.SQLITE;

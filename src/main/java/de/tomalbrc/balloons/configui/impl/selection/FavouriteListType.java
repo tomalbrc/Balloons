@@ -19,7 +19,7 @@ class FavouriteListType implements ListGuiElementType<GuiElementData, Configured
 
     @Override
     public GuiElementBuilder buildEntry(ConfiguredGui<GuiElementData, ConfiguredBalloon> gui, GuiElementData data, ConfiguredBalloon element) {
-        return data.decorate(new GuiElementBuilder(element.itemStack()), element.placeholder(), element.id().equals(StorageUtil.getActive(gui.getPlayer()))).setCallback((s, c, a) -> {
+        return data.decorate(new GuiElementBuilder(element.itemStack()), element.placeholder(), element.id().equals(StorageUtil.getActive(gui.getPlayer()))).setCallback((s, c, a, _) -> {
             Util.clickSound(gui.getPlayer());
 
             boolean isActive = element.id().equals(StorageUtil.getActive(gui.getPlayer()));

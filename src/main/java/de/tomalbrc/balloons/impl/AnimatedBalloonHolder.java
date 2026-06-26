@@ -8,11 +8,11 @@ import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.bil.core.model.Pose;
 import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
+import eu.pb4.polymer.virtualentity.api.data.DisplayEntityData;
+import eu.pb4.polymer.virtualentity.api.data.EntityData;
 import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
-import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.commands.CommandSourceStack;
@@ -29,6 +29,7 @@ import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec2;
@@ -55,7 +56,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
         this.leashElement = new BalloonRootElement();
         this.leashElement.setInteractionHandler(new VirtualElement.InteractionHandler() {
             @Override
-            public void interact(ServerPlayer player, InteractionHand hand) {
+            public void interact(ServerPlayer player, InteractionHand hand, Vec3 pos, boolean usingSecondaryAction) {
                 var gui = new SelectionGui(player);
                 gui.open();
             }
@@ -69,7 +70,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
         if (glint && display.element() instanceof ItemDisplayElement displayElement) {
             var item = displayElement.getItem();
             item.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
-            displayElement.getDataTracker().set(DisplayTrackedData.Item.ITEM, item, true);
+            displayElement.getSyncedData().set(DisplayEntityData.Item.ITEM, item, true);
         }
     }
 
@@ -82,7 +83,7 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
                 ids.add(bone.element().getEntityId());
             }
 
-            var ridePacket = VirtualEntityUtils.createRidePacket(this.leashElement.getEntityId(), ids);
+            var ridePacket = VirtualEntityUtils.createClientboundSetPassengersPacket(this.leashElement.getEntityId(), ids);
             var list = ObjectArrayList.<Packet<? super ClientGamePacketListener>>of(ridePacket);
 
             if (this.leash) {
@@ -174,14 +175,14 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
         public BalloonRootElement() {
             super();
 
-            this.dataTracker.set(EntityTrackedData.SILENT, true);
-            this.dataTracker.set(EntityTrackedData.NO_GRAVITY, true);
-            this.dataTracker.set(EntityTrackedData.FLAGS, (byte) ((1 << EntityTrackedData.INVISIBLE_FLAG_INDEX)));
+            this.syncedData.set(EntityData.SILENT, true);
+            this.syncedData.set(EntityData.NO_GRAVITY, true);
+            this.syncedData.set(EntityData.FLAGS, (byte) ((1 << EntityData.INVISIBLE_FLAG_INDEX)));
         }
 
         @Override
         protected EntityType<? extends Entity> getEntityType() {
-            return EntityType.SILVERFISH;
+            return EntityTypes.SILVERFISH;
         }
     }
 }

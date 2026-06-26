@@ -1,8 +1,8 @@
 package de.tomalbrc.balloons.filament;
 
 import de.tomalbrc.balloons.Balloons;
-import dev.emi.trinkets.api.event.TrinketEquipCallback;
-import dev.emi.trinkets.api.event.TrinketUnequipCallback;
+import eu.pb4.trinkets.api.event.TrinketEquipCallback;
+import eu.pb4.trinkets.api.event.TrinketUnequipCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
