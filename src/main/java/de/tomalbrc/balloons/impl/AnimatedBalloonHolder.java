@@ -143,8 +143,6 @@ public class AnimatedBalloonHolder extends AbstractAnimationHolder {
                 Vec2.ZERO,
                 this.getLevel(),
                 PermissionSet.ALL_PERMISSIONS,
-                name,
-                Component.literal(name),
                 this.getLevel().getServer(),
                 null
         );

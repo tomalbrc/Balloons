@@ -30,11 +30,14 @@ public class ServerGamePacketListenerImplMixin {
     }
 
     @Inject(method = "handleUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayerGameMode;useItem(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"), cancellable = true)
-    private void balloons$onUse(ServerboundUseItemPacket serverboundUseItemPacket, CallbackInfo ci, @Local ItemStack itemStack) {
+    private void balloons$onUse(ServerboundUseItemPacket packet, CallbackInfo ci, @Local(name = "itemStack") ItemStack itemStack) {
         if (itemStack.has(ModComponents.TOKEN)) {
             var tokenId = itemStack.get(ModComponents.TOKEN);
             if (tokenId != null && tokenId.canUse(player) && Balloons.getStorage().add(player.getUUID(), tokenId.id())) {
-                String title = Balloons.all().get(tokenId.id()).title();
+                var current = Balloons.all().get(tokenId.id());
+                if (current == null) return;
+
+                String title = current.title();
                 player.sendSystemMessage(TextUtil.parse(String.format(ModConfig.getInstance().messages.added, title == null ? tokenId.id() : title)));
                 itemStack.consume(1, player);
             }
@@ -43,9 +46,9 @@ public class ServerGamePacketListenerImplMixin {
     }
 
     @Inject(method = "handleUseItemOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayerGameMode;useItemOn(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;"), cancellable = true)
-    private void balloons$onUseOn(ServerboundUseItemOnPacket serverboundUseItemOnPacket, CallbackInfo ci, @Local ItemStack itemStack) {
+    private void balloons$onUseOn(ServerboundUseItemOnPacket packet, CallbackInfo ci, @Local(name = "itemStack") ItemStack itemStack) {
         if (itemStack.has(ModComponents.TOKEN)) {
-            var pos = serverboundUseItemOnPacket.getHitResult().getBlockPos();
+            var pos = packet.hitResult().getBlockPos();
             boolean isFence = this.player.level().getBlockState(pos).is(BlockTags.WOODEN_FENCES);
             BalloonToken token = itemStack.get(ModComponents.TOKEN);
 
