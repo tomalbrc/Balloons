@@ -34,8 +34,9 @@ public class FilamentCompat {
     }
 
     private static void registerBalloon(Identifier id, Item item) {
-        if (item.components().has(ModComponents.BALLOON)) {
-            BalloonProperties properties = item.components().get(ModComponents.BALLOON);
+        var filaItem = item.asFilamentItem();
+        if (filaItem.getData().components().has(ModComponents.BALLOON)) {
+            BalloonProperties properties = filaItem.getData().components().get(ModComponents.BALLOON);
             assert properties != null;
             ConfiguredBalloon configBalloon = new ConfiguredBalloon(id, properties.title(), null, properties);
             Balloons.UNGROUPED.put(id, configBalloon);

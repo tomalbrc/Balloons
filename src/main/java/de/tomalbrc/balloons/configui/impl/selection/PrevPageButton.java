@@ -14,6 +14,6 @@ public class PrevPageButton implements GuiElementType<GuiElementData, Configured
             return new GuiElementBuilder(Items.AIR.getDefaultInstance());
         }
 
-        return data.decorate(new GuiElementBuilder(data.item().copy())).setCallback(() -> g.previousPage(data.type()));
+        return data.decorate(new GuiElementBuilder(data.item() == null ? Items.AIR.getDefaultInstance() : data.item().create())).setCallback(() -> g.previousPage(data.type()));
     }
 }

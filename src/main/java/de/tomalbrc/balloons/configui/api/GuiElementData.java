@@ -6,11 +6,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
 
-public record GuiElementData(String type, String title, ItemStack item, List<String> lore, List<String> altLore, boolean glint) {
+public record GuiElementData(String type, String title, @Nullable ItemStackTemplate item, List<String> lore, List<String> altLore, boolean glint) {
     public static Style EMPTY_STYLE = Style.EMPTY.withColor(ChatFormatting.WHITE).withUnderlined(false).withItalic(false).withObfuscated(false).withStrikethrough(false);
 
     public GuiElementBuilder decorate(GuiElementBuilder builder) {

@@ -13,6 +13,7 @@ import de.tomalbrc.balloons.util.StorageUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2i;
@@ -32,6 +33,7 @@ public class ModConfig {
     static ModConfig instance;
     public static Gson JSON = new GsonBuilder()
             .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackDeserializer())
+            .registerTypeHierarchyAdapter(ItemStackTemplate.class, new ItemStackTemplateDeserializer())
             .registerTypeHierarchyAdapter(Identifier.class, new SimpleCodecDeserializer<>(Identifier.CODEC))
             .registerTypeHierarchyAdapter(BalloonProperties.class, new SimpleCodecDeserializer<>(BalloonProperties.CODEC))
             .registerTypeHierarchyAdapter(Vec3.class, new SimpleCodecDeserializer<>(Vec3.CODEC))
@@ -61,11 +63,11 @@ public class ModConfig {
             "         ",
             " FFFFFFF "
     ), Map.of(
-            ' ', new GuiElementData("empty", null, Items.AIR.getDefaultInstance(), List.of(), List.of(), false),
-            'N', new GuiElementData("next_page", "Next Page", Items.ARROW.getDefaultInstance(), List.of(), List.of(), false),
-            'P', new GuiElementData("prev_page", "Previous Page", Items.ARROW.getDefaultInstance(), List.of(), List.of(), false),
-            'B', new GuiElementData("browse", "Browse all Balloons", Items.CHEST.getDefaultInstance(), List.of(), List.of(), false),
-            'E', new GuiElementData("contents", null, Items.EMERALD.getDefaultInstance(),
+            ' ', new GuiElementData("empty", null, null, List.of(), List.of(), false),
+            'N', new GuiElementData("next_page", "Next Page", new ItemStackTemplate(Items.ARROW), List.of(), List.of(), false),
+            'P', new GuiElementData("prev_page", "Previous Page", new ItemStackTemplate(Items.ARROW), List.of(), List.of(), false),
+            'B', new GuiElementData("browse", "Browse all Balloons", new ItemStackTemplate(Items.ARROW), List.of(), List.of(), false),
+            'E', new GuiElementData("contents", null, new ItemStackTemplate(Items.EMERALD),
                     List.of("",
                             "<green>🎈</green> Press <keybind:key.attack> to equip",
                             "",
@@ -78,7 +80,7 @@ public class ModConfig {
                             "<color:#800080>↔</color> Press <keybind:key.use> to unequip",
                             "",
                             "<color:#800080>★</color> Press <keybind:key.sneak> + <keybind:key.attack> to add to favourites"), false),
-            'F', new GuiElementData("favourites", null, Items.DIAMOND.getDefaultInstance(),
+            'F', new GuiElementData("favourites", null, new ItemStackTemplate(Items.DIAMOND),
                     List.of("",
                             "<green>🎈</green> Press <keybind:key.attack> to equip",
                             "",
@@ -101,11 +103,11 @@ public class ModConfig {
             " EEEEEEE ",
             "         "
     ), Map.of(
-            ' ', new GuiElementData("empty", null, Items.AIR.getDefaultInstance(), List.of(), List.of(), false),
-            'N', new GuiElementData("next_page", "Next Page", Items.ARROW.getDefaultInstance(), List.of(), List.of(), false),
-            'P', new GuiElementData("prev_page", "Previous Page", Items.ARROW.getDefaultInstance(), List.of(), List.of(), false),
-            'B', new GuiElementData("back", "Back", Items.ARROW.getDefaultInstance(), List.of(), List.of(), false),
-            'E', new GuiElementData("contents", null, Items.EMERALD.getDefaultInstance(),
+            ' ', new GuiElementData("empty", null, null, List.of(), List.of(), false),
+            'N', new GuiElementData("next_page", "Next Page", new ItemStackTemplate(Items.ARROW), List.of(), List.of(), false),
+            'P', new GuiElementData("prev_page", "Previous Page", new ItemStackTemplate(Items.ARROW), List.of(), List.of(), false),
+            'B', new GuiElementData("back", "Back", new ItemStackTemplate(Items.ARROW), List.of(), List.of(), false),
+            'E', new GuiElementData("contents", null, new ItemStackTemplate(Items.EMERALD),
                     List.of("", "<gold>You do not own this balloon!"),
                     List.of("", "<green>You own this balloon!"), false)
     ), false);
@@ -113,9 +115,9 @@ public class ModConfig {
     public GuiData<GuiElementData> confirmationGui = new GuiData<>("Confirm", List.of(
             " C     A "
     ), Map.of(
-            ' ', new GuiElementData("empty", null, Items.AIR.getDefaultInstance(), List.of(), List.of(), false),
-            'A', new GuiElementData("confirm", "Confirm", Items.CONCRETE.lime().getDefaultInstance(), List.of(), List.of(), false),
-            'C', new GuiElementData("cancel", "Cancel", Items.CONCRETE.red().getDefaultInstance(), List.of(), List.of(), false)
+            ' ', new GuiElementData("empty", null, null, List.of(), List.of(), false),
+            'A', new GuiElementData("confirm", "Confirm", new ItemStackTemplate(Items.CONCRETE.lime()), List.of(), List.of(), false),
+            'C', new GuiElementData("cancel", "Cancel", new ItemStackTemplate(Items.CONCRETE.red()), List.of(), List.of(), false)
     ), false);
 
     public StorageUtil.Type storageType = StorageUtil.Type.SQLITE;

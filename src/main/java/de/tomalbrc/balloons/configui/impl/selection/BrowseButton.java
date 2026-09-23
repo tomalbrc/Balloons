@@ -7,11 +7,12 @@ import de.tomalbrc.balloons.configui.api.GuiElementType;
 import de.tomalbrc.balloons.configui.impl.browse.BrowseGui;
 import de.tomalbrc.balloons.util.Util;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import net.minecraft.world.item.Items;
 
 public class BrowseButton implements GuiElementType<GuiElementData, ConfiguredBalloon> {
     @Override
     public GuiElementBuilder build(ConfiguredGui<GuiElementData, ConfiguredBalloon> gui, GuiElementData data) {
-        return data.decorate(new GuiElementBuilder(data.item().copy())).setCallback(() -> {
+        return data.decorate(new GuiElementBuilder(data.item() == null ? Items.AIR.getDefaultInstance() : data.item().create())).setCallback(() -> {
             Util.clickSound(gui.getPlayer());
 
             var gui2 = new BrowseGui(gui.getPlayer());
